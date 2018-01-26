@@ -32,11 +32,7 @@ end
 function result = selectBests(fitness)
   %% TODO: Some selection methods do not care about negative fitness values.
   %% When implementing them, move this to the ones who care and assert?
-  
-  %% FIXME: In case all fitnesses are the same, this causes the fitness
-  %% to only contain 0!
-  %% In principle, it should not happen once mutation is in place, but
-  %% just in case...
+
   min_fitness = min(fitness);
   
   %% Remove negative fitness and a little more, so their relative
