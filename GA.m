@@ -198,7 +198,7 @@ function [result, history] = minimize(fn, constraints, config)
 end
 
 function result = defaultConfig
-  result.N = 100; %% Population count %% FIXME: N = 10 crashes!
+  result.N = 100; %% Population count
   result.G_max = 100; %% Max iteration count
   
   %% NOTE: 'binary' is just an integer representation (to get to the

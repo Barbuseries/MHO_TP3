@@ -7,7 +7,7 @@ function result = singlePoint(a, b, l)
   %% variables. If this is not the case, change '1' to be the number
   %% of variables and remove upper and lower multiplication by
   %% ones(size(a)) (see NOTE below).
-  points = randi(l - 1, length(a), 1); %% Find single point (for all individuals)
+  points = randi(l - 1, size(a)(1), 1); %% Find single point (for all individuals)
   max_val = 2**l - 1;
 
   %% NOTE: To split and merge as simply as possible, this compute the
