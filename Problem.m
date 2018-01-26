@@ -43,8 +43,8 @@ end
 %% restarting octave...
 function result = optimize(problem, maximize)
   if (maximize == 1)
-	result = @(config) GA.maximize(problem().fitness_fn, problem().constraints, config);
+	result = @(config) GA.maximize(problem.fitness_fn, problem.constraints, config);
   else
-	result = @(config) GA.minimize(problem().fitness_fn, problem().constraints, config);
+	result = @(config) GA.minimize(problem.fitness_fn, problem.constraints, config);
   end  
 end

@@ -57,7 +57,7 @@ function result = selectBests(fitness)
 	result(i) = find(cumulative_sum >= rand_val, 1, 'first');
 
 	i += 1;
-  endwhile
+  end
 end
 
 function result = crossover(mating_pool, crossover_fn, l, Pc)
@@ -103,7 +103,7 @@ function result = mutate(children, mutation_fn, l, Pm)
   %% arrays, I can not one-line this...
   for i = 1:count
 	result(i, :) = mutation_fn(children(i, :), l, Pm);
-  endfor
+  end
 end
 
 function plotHistory(history)
@@ -121,17 +121,17 @@ function plotHistory(history)
 	  values = history.population(:, :, i);
 	  
 	  plot(values, history.fitness(i), sprintf(".%s", colors(color_index)));
-	endfor
+	end
   elseif (value_count == 2)
 	for i = 1:count
 	  color_index = mod(i - 1, length(colors)) + 1;
 	  values = history.population(:, :, i);
 
 	  plot3(values(:, 1), values(:, 2), history.fitness(:, i), sprintf("+-%s", colors(color_index)));
-	endfor
+	end
   else
 	error("sorry");
-  endif
+  end
 end
 
 %% Maximize fn whose parameters are defined inside the given
@@ -181,7 +181,7 @@ function [result, history] = maximize(fn, constraints, config)
 
 	history.population(:, :, g) = population(:, :);
 	history.fitness(:, g) = fitness(:);
-  endfor
+  end
 
   fitness = evalFitness(population, fn, constraints, l);
   [~, index_best] = max(fitness);

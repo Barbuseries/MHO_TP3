@@ -8,7 +8,7 @@ function result = bitFlip(child, l, Pm)
   
   if (length(mutation_indices == 0))
 	  result = child;
-  endif
+  end
   
   flag = sum(2.**(mutation_indices - 1)); %% Compute the flag associated to the bit indices
   result = bitxor(child, flag); %% Do a flip!

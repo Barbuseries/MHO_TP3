@@ -16,7 +16,7 @@ end
 function result = reduce(fn, a, v)
   for i  = a
 	v = fn(v, i);
-  endfor
+  end
   
   result = v;
 end
