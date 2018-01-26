@@ -39,6 +39,8 @@ end
 
 %% FIXME: Optimizing got slower (~0.5s) once this currying took place.
 %% See if we wish to keep this "clean" syntax or not.
+%% NOTE about FIXME: The slowness seems to have disappeared after
+%% restarting octave...
 function result = optimize(problem, maximize)
   if (maximize == 1)
 	result = @(config) GA.maximize(problem().fitness_fn, problem().constraints, config);

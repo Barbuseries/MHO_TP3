@@ -1,4 +1,5 @@
 %% Includes
+Utils;
 Crossover;
 Mutation;
 
@@ -174,7 +175,7 @@ function [result, history] = maximize(fn, constraints, config)
 	
 	%% Selection
 	selection = selectBests(fitness);
-	mating_pool = population(shuffle(selection), :);
+	mating_pool = population(Utils.shuffle(selection), :);
 
 	%% Crossover
 	children = crossover(mating_pool, crossover_fn, l, Pc);
