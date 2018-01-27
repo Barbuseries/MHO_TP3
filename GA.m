@@ -189,6 +189,9 @@ function showHistory(problem, history, iterations)
   end
 end
 
+%% TODO: Save objective_fn value (technically, it should be saved
+%% instead of the fitness value, but one can be evaluated here, and
+%% another not (variable number of arguments))...
 function result = create_record(population, fitness, constraints, l)
   result.population = dec2val(population, constraints, l);
   result.fitness = fitness;

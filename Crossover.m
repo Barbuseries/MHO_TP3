@@ -9,8 +9,8 @@ end
 
 %% function result = singlePoint(a, b, l)
 %%   %% NOTE: According to the slides, it should be left to the user to
-%%   %% say weither or not variables are combined (and l may be different
-%%   %% for each).
+%%   %% specify weither or not variables are combined (and l may be
+%%   %% different for each).
 %%   %% NOTE/FIXME: This assumes the crossover point is the same for all
 %%   %% variables. If this is not the case, change '1' to be the number
 %%   %% of variables and remove upper and lower multiplication by
@@ -51,8 +51,8 @@ function result = _multiPoint(n, a, b, l)
   end
   
   %% NOTE: According to the slides, it should be left to the user to
-  %% say weither or not variables are combined (and l may be different
-  %% for each).
+  %% specify weither or not variables are combined (and l may be
+  %% different for each).
   %% NOTE/FIXME: This assumes the crossover point is the same for all
   %% variables. If this is not the case, change 'n' to be n times the
   %% number of variables and remove upper and lower multiplication by
@@ -63,14 +63,6 @@ function result = _multiPoint(n, a, b, l)
   max_val = 2**l - 1;
 
   %% TODO: Explain!
-  %% NOTE(wrong now): To split and merge as simply as possible, this
-  %% compute the flags associted to the left and right parts of the
-  %% binary representation (upper and lower). Given a point p, if we
-  %% are computing the right part (lower), every bit after the point
-  %% must be one. So, we take the decimal value at p (2 ** p =>
-  %% 0...010...0) and substract 1 (=> 0...001...1). To get the left
-  %% part, we take the maximum value (all ones), and remove the
-  %% previous flag: only ones before p (included) will remain.
   flags = (2 .** points) - 1;
   lower_flags = Utils.reduce(@bitxor, flags, 0);
   upper_flags = bitxor(lower_flags, max_val);
