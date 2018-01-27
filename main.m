@@ -5,6 +5,14 @@
 %% Includes
 Problem;
 
+PROFILING = 0;
+
+if (PROFILING)
+  profile off;
+  profile clear;
+  profile on;
+end
+
 config = GA.defaultConfig();
 config.N = 100;
 config.l = 52;
@@ -14,7 +22,7 @@ config.crossover_fn = Crossover.uniform(0.5);
 %% config.G_max = 1000;
 %% decode1 = Utils.decode(p1, config);
 %% config.crossover_fn = Crossover.uniform(@(x, y) (x ./ (x + y)), @(x) p1.fitness_fn(decode1(x)));
-
+%% %% config.crossover_fn = Crossover.singlePoint;
 %% [result1, history1] = p1.optimize(config);
 
 %% disp(result1);
@@ -40,6 +48,7 @@ config.Pm = 0.01;
 
 decode2 = Utils.decode(p2, config);
 config.crossover_fn = Crossover.uniform(@(x, y) (x ./ (x + y)), @(x) p2.fitness_fn(decode2(x)));
+## config.crossover_fn = Crossover.singlePoint;
 
 [result2, history2] = p2.optimize(config);
 
@@ -47,3 +56,8 @@ disp(result2);
 disp(p2.objective_fn(result2));
 
 GA.showHistory(p2, history2, -1);
+
+
+if (PROFILING)
+  profshow;
+end
