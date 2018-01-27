@@ -6,6 +6,7 @@ GA;
 %% Problem.<problem>().optimize(config) => Problem.<problem>(config)).
 function export = Problem
   export.rosenbrock = @rosenbrock_problem;
+  export.griewank = @griewank_problem;
   export.TOTO = @TOTO_problem;
 end
 
@@ -16,6 +17,15 @@ function result = rosenbrock_problem
 					    [0, 3]];
 
   result.optimize = optimize(result, 1);
+end
+
+function result = griewank_problem
+  result.objective_fn = @Griewank;
+  result.fitness_fn = @(p) @Griewank(p(:, 1), p(:, 2));
+  result.constraints = [[-30, 30]
+					    [-30, 30]];
+
+  result.optimize = optimize(result, 0);
 end
 
 function result = TOTO_problem
@@ -31,6 +41,10 @@ function result = Rosenbrock(x, y)
   b = y - a;
 
   result = -((1 - a) + 100 * (b .* b));
+end
+
+function result = Griewank(x, y)
+  result = (((x .* x) + (y .* y)) / 4000) - cos(x) .* cos(y / sqrt(2)) + 1;
 end
 
 function result = TOTO(x)

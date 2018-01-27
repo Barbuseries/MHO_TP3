@@ -10,7 +10,7 @@ function result = shuffle(a)
 end
 
 function result = linspacea(a, n)
-  result = linspace(a(1), a(2), n);
+  result = linspace(a(:, 1), a(:, 2), n);
 end
 
 function result = reduce(fn, a, v)

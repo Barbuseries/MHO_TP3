@@ -6,7 +6,10 @@ Mutation;
 function export = GA
   export.maximize = @maximize;
   export.minimize = @minimize;
+
   export.defaultConfig = @defaultConfig;
+
+  export.showHistory = @showHistory;
 end
 
 function result = initialGeneration(N, constraints, l)
@@ -24,7 +27,6 @@ function result = dec2val(val, constraints, l)
 end
 
 function result = evalFitness(population, fn, constraints, l)
-  max_val = 2**l-1;
   real_values = dec2val(population, constraints, l);
   result = fn(real_values);
 end
@@ -106,32 +108,94 @@ function result = mutate(children, mutation_fn, l, Pm)
   end
 end
 
-function plotHistory(history)
-  %% TODO: Find my old gradient function and use it here.
-  colors = ["r", "g", "b", "k", "y", "m"];
-  count = length(history.population);
-  value_count = length(history.population(1, :, 1));
+%% TODO: Default value for iterations to be -1.
+function showHistory(problem, history, iterations)
+  var_count = size(history(1).bestIndividual)(2);
+
+  if (iterations == -1)
+	iterations = 1:length(history);
+  end
   
+  values = history(iterations);
+  
+  figure(1);
   clf;
   hold on;
-  
-  if (value_count == 1)
-	for i = 1:count
-	  color_index = mod(i - 1, length(colors)) + 1;
-	  values = history.population(:, :, i);
-	  
-	  plot(values, history.fitness(i), sprintf(".%s", colors(color_index)));
-	end
-  elseif (value_count == 2)
-	for i = 1:count
-	  color_index = mod(i - 1, length(colors)) + 1;
-	  values = history.population(:, :, i);
 
-	  plot3(values(:, 1), values(:, 2), history.fitness(:, i), sprintf("+-%s", colors(color_index)));
+  best_individual_format = 'g*';
+  best_individual_size = 10;
+
+  [maxFitness, very_best_index] = max([values.maxFitness]);
+  very_best = values(very_best_index).bestIndividual;
+  
+  plot(iterations, [values.maxFitness], '-+');
+  
+  plot(iterations(very_best_index), maxFitness, best_individual_format, 'markersize', best_individual_size);
+  
+  xlabel('Iteration');
+  ylabel('Max fitness');
+  title('Max fitness by iteration');
+
+  if (var_count <= 2)
+	figure(2);
+	clf;
+	hold on;
+	
+	%% [values.bestIndividual] returns a 1D array containing
+	%% [x1, y1, ..., x2, y2, ...],so we regroup everthing to get
+	%% [[x1, y1, ...]; [x2, y2, ...]; ...]
+	best_individuals = reshape([values.bestIndividual], var_count, [])';
+	
+	objective_fn_format = 'b';
+	individuals_format = 'r+';
+	
+	best_x = best_individuals(:, 1);
+
+	%% TODO: Show iteration order
+	%% TODO: Find my old gradient function and use it here.
+	%% TODO: Show population at each iteration
+	if (var_count == 1)
+	  x = Utils.linspacea(problem.constraints, 1000);
+	  
+	  plot(x, problem.objective_fn(x), objective_fn_format);
+	  plot(best_x, problem.objective_fn(best_x), individuals_format);
+
+	  plot(very_best, maxFitness, best_individual_format, 'markersize', best_individual_size);
+	  ylabel('F(x)');
+	else
+	  domain = Utils.linspacea(problem.constraints, 200); %% Less points because N^2...
+	  x = domain(1, :);
+	  y = domain(2, :);
+
+	  %% FIXME: There is an offset between the result of objective_fn
+	  %% on the meshgrid and the individuals' coordinates... weird!
+	  [xx, yy] = meshgrid(x, y);
+	  z = problem.objective_fn(xx, yy)';
+	  mesh(x, y, z);
+
+	  best_y = best_individuals(:, 2);
+	  plot3(best_x, best_y, problem.objective_fn(best_x, best_y), individuals_format);
+
+	  plot3(very_best(1), very_best(2), maxFitness, best_individual_format, 'markersize', best_individual_size);
+
+	  ylabel('Best individual y');
+	  zlabel('F(x, y)');
 	end
+	
+	xlabel('Best individual x');
+	title('Objective function F and best individuals at each iteration');
   else
-	error("sorry");
+	disp('Too many variables to plot objective function.');
   end
+end
+
+function result = create_record(population, fitness, constraints, l)
+  result.population = dec2val(population, constraints, l);
+  result.fitness = fitness;
+
+  [maxFitness, index] = max(fitness); 
+  result.bestIndividual = result.population(index, :);
+  result.maxFitness = maxFitness;
 end
 
 %% Maximize fn whose parameters are defined inside the given
@@ -141,8 +205,11 @@ end
 %% fn receives a parameter with three columns)
 %%
 %% Return the best individual from the last iteration as well as an
-%% history which contains all individuals and their fitness at each
-%% iteration.
+%% history which contains, for each iteration:
+%% - the population (real values)
+%% - it's fitness
+%% - the best individual
+%% - it's fitness
 function [result, history] = maximize(fn, constraints, config)
   %% TODO: Parameter check and default value.
   N = config.N;
@@ -154,20 +221,18 @@ function [result, history] = maximize(fn, constraints, config)
   mutation_fn = config.mutation_fn;
   
   _starting_time = time();
-  
-  population = initialGeneration(N, constraints, l);
-  history = {};
 
-  %% TODO: Change to contain G_max + 1 'iteration' structs (so we can
-  %% add info such as max / average fitness, ...)
-  history.population = zeros(N, size(constraints)(1), G_max + 1);
-  history.fitness = zeros(N, G_max + 1);
+  var_count = size(constraints)(1);
+  population = initialGeneration(N, constraints, l);
   
-  history.population(:, :, 1) = population(:, :);
+  history(1:G_max+1) = struct;
 
   for g = 1:G_max
 	%% Evaluation
 	fitness = evalFitness(population, fn, constraints, l);
+
+	%% Recording
+	history(g) = create_record(population, fitness, constraints, l);
 	
 	%% Selection
 	selection = selectBests(fitness);
@@ -178,18 +243,18 @@ function [result, history] = maximize(fn, constraints, config)
 
 	%% Mutation
 	population = mutate(children, mutation_fn, l, Pm);
-
-	history.population(:, :, g) = population(:, :);
-	history.fitness(:, g) = fitness(:);
   end
 
   fitness = evalFitness(population, fn, constraints, l);
+
   [~, index_best] = max(fitness);
   best = population(index_best, :);
   
   result = dec2val(best, constraints, l);
 
-  fprintf(1, "Duration: %ds\n", time - _starting_time);
+  history(G_max + 1) = create_record(population, fitness, constraints, l);
+
+  fprintf(1, 'Duration: %ds\n', time - _starting_time);
 end
 
 %% NOTE: Minimizing f(x) is maximizing g(x) = -f(x)
