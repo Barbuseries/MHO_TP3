@@ -1,10 +1,14 @@
-DONE: - binary genetic algorithm with configuration      (binary)
+# DONE 
+
+      - binary genetic algorithm with configuration      (binary)
       - multipoint crossover                             (binary)
-      - minimizastion and negative values                (both)
+      - minimization and negative values                 (both)
       - baisc history and plots                          (both)
 	  - uniform crossover (parameterized)                (binary)
 
-TODO: - real valued genetic algorithm with configuration (real) - NEXT 2
+# TODO 
+      
+      - real valued genetic algorithm with configuration (real) - NEXT 1
       - whole arithmetic crossover                       (real)
       - local arithmetic crossover                       (real)
       - blend crossover                                  (real)
