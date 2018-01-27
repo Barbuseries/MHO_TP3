@@ -5,12 +5,12 @@ GA;
 %% could change their definition to call optimize directly (instead of
 %% Problem.<problem>().optimize(config) => Problem.<problem>(config)).
 function export = Problem
-  export.rosenbrock = @rosenbrock_problem;
-  export.griewank = @griewank_problem;
-  export.TOTO = @TOTO_problem;
+  export.rosenbrock = @rosenbrockProblem;
+  export.griewank = @griewankProblem;
+  export.TOTO = @TOTOProblem;
 end
 
-function result = rosenbrock_problem
+function result = rosenbrockProblem
   result.objective_fn = @Rosenbrock;
   result.fitness_fn = @(p) @Rosenbrock(p(:, 1), p(:, 2));
   result.constraints = [[0, 2]
@@ -19,7 +19,7 @@ function result = rosenbrock_problem
   result.optimize = optimize(result, 1);
 end
 
-function result = griewank_problem
+function result = griewankProblem
   result.objective_fn = @Griewank;
   result.fitness_fn = @(p) @Griewank(p(:, 1), p(:, 2));
   result.constraints = [[-30, 30]
@@ -28,7 +28,7 @@ function result = griewank_problem
   result.optimize = optimize(result, 0);
 end
 
-function result = TOTO_problem
+function result = TOTOProblem
   result.objective_fn = @TOTO;
   result.fitness_fn = @(p) @TOTO(p(:, 1));
   result.constraints = [[-1, 2]];

@@ -4,12 +4,15 @@ end
 
 
 function result = bitFlip(child, l, Pm)
-  mutation_indices = find(rand(1, l) <= Pm); %% Every allele that needs to mutate.
+  %% NOTE: (See corresponding notes in Crossover)
+  %% We may want mutation to be different for each variable, in that
+  %% case, replace 1 by dim(2) and remove the multiplication by
+  %% ones(dim).
   
-  if (length(mutation_indices == 0))
-	  result = child;
-  end
-  
-  flag = sum(2.**(mutation_indices - 1)); %% Compute the flag associated to the bit indices
-  result = bitxor(child, flag); %% Do a flip!
+  dim = size(child);
+  %% TODO: Explain!
+  mask_as_array = rand(dim(1), l, 1) <= Pm; %% Every allele that needs to mutate is 1 at the correponding index
+  mask = Utils.arrayToDec(mask_as_array) .* ones(dim);
+
+  result = bitxor(child, mask); %% Do a flip!
 end

@@ -23,19 +23,20 @@ function result = _multiPoint(n, a, b, l)
   %% NOTE/FIXME: This assumes the crossover point is the same for all
   %% variables. If it is not the case, change 'n' to be n times the
   %% number of variables and remove upper and lower multiplication by
-  %% ones(size(a)) (see NOTE in combine_with_mask).
-  %% TODO: Explain!
-  [~, indices] = sort(rand(size(a)(1), l - 1), 2);
-  points = sort(indices(:, 1:n), 2);
+  %% ones(size(a)) (see NOTE in combineWithMask).
+  BY_COLUMN = 2;
+  [~, indices] = sort(rand(size(a)(1), l - 1), BY_COLUMN);
+  points = sort(indices(:, 1:n), BY_COLUMN);
 
   %% TODO: Explain!
   flags = (2 .** points) - 1;
-  mask = Utils.reduce(@bitxor, flags, 0);
+  mask = bitxor(flags, 0);
   
-  result = combine_with_mask(a, b, mask, l);
+  result = combineWithMask(a, b, mask, l);
 end
 
 %% TODO: Default value for p
+%% TODO: Should we reverse the function order?
 function h = uniform(p, t)
   if (isnumeric(p))
 	if ((p < 0) | (p > 1))
@@ -44,8 +45,7 @@ function h = uniform(p, t)
 	  h = @(a, b, l) _uniform(p, a, b, l);
 	end
   elseif (is_function_handle(p) & is_function_handle(t))
-	%% TODO: Should we reverse the function order?
-	%%       If t is not defined, set to identity.  
+	%% TODO: If t is not defined, set to identity.  
 	h = @(a, b, l) _uniform(p(t(a), t(b)), a, b, l);
   else
 	error("uniform: either p must be a real in [0, 1] or p and t must be two function handles")
@@ -61,17 +61,15 @@ function result = _uniform(p, a, b, l)
   %% NOTE/FIXME: This assumes the crossover point is the same for all
   %% variables. If it is not the case, change '1' to be the number
   %% of variables and remove upper and lower multiplication by
-  %% ones(size(a)) (see NOTE in combine_with_mask).
+  %% ones(size(a)) (see NOTE in combineWithMask).
   %%TODO: Explain!
   mask_as_array = rand(size(a)(1), l, 1) >= p;
+  mask = Utils.arrayToDec(mask_as_array);
   
-  %% TODO: Explain!
-  mask = Utils.reduce(@(a, b) a * 2 + b, mask_as_array, 0);
-  
-  result = combine_with_mask(a, b, mask, l);
+  result = combineWithMask(a, b, mask, l);
 end
 
-function result = combine_with_mask(a, b, mask, l)
+function result = combineWithMask(a, b, mask, l)
   max_val = 2**l - 1;
 
   %% NOTE: This is to use array application of bit functions, so I do
@@ -80,11 +78,11 @@ function result = combine_with_mask(a, b, mask, l)
   mask = mask .* ones(size(a));
   inv_mask = bitxor(mask, max_val);
   
-  result = make_children(a, b, mask, inv_mask);
+  result = makeChildren(a, b, mask, inv_mask);
 end
 
 %% TODO: Find a better name.
-function result = make_children(a, b, m, im)
+function result = makeChildren(a, b, m, im)
   c1 = bitor(bitand(a, m), bitand(b, im));
   c2 = bitor(bitand(b, m), bitand(a, im));
   

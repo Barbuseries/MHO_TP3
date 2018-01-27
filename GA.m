@@ -24,6 +24,8 @@ function result = evalFitness(population, fn, constraints, l)
   result = fn(real_values);
 end
 
+%% FIXME(@perf): This is now the bottleneck.
+%% (See last TODO, the time has come...)
 function result = selectBests(fitness)
   %% TODO: Some selection methods do not care about negative fitness values.
   %% When implementing them, move this to the ones who care and assert?
@@ -80,7 +82,8 @@ function result = crossover(mating_pool, crossover_fn, l, Pc)
   %% the index to 53), which means we would be limited to 53 /
   %% var_count bits per variable. (var_count = 3 => 17 bits)
   %% (By handling them separately, we do not have _any_ limitation)
-  unchanged = mating_pool(setdiff(1:length(mating_pool), indices), :); %% Find which pair did _not_ crossover
+  unchanged = mating_pool;
+  unchanged(indices, :) = [];  %% Find which pair did _not_ crossover
   go_through_crossover = crossover_fn(go_through_crossover(:, min_b),
 									  go_through_crossover(:, max_b),
 									  l);
@@ -88,17 +91,6 @@ function result = crossover(mating_pool, crossover_fn, l, Pc)
   %% Flatten the result to have [i1; i2; ...] again, instead of
   %% [ [i1, i2]; [i3, i4]; ... ]
   result = reshape([unchanged; go_through_crossover]', var_count, [])';
-end
-
-function result = mutate(children, mutation_fn, l, Pm)
-  count = length(children);
-  result = zeros(size(children));
-  
-  %% NOTE: As bitxor does not work as intended if both X and Y are
-  %% arrays, I can not one-line this...
-  for i = 1:count
-	result(i, :) = mutation_fn(children(i, :), l, Pm);
-  end
 end
 
 %% TODO: Default value for iterations to be -1.
@@ -185,7 +177,7 @@ end
 %% TODO: Save objective_fn value (technically, it should be saved
 %% instead of the fitness value, but one can be evaluated here, and
 %% another not (variable number of arguments))...
-function result = create_record(population, fitness, constraints, l)
+function result = createRecord(population, fitness, constraints, l)
   result.population = Utils.dec2val(population, constraints, l);
   result.fitness = fitness;
 
@@ -228,7 +220,7 @@ function [result, history] = maximize(fn, constraints, config)
 	fitness = evalFitness(population, fn, constraints, l);
 
 	%% Recording
-	history(g) = create_record(population, fitness, constraints, l);
+	history(g) = createRecord(population, fitness, constraints, l);
 	
 	%% Selection
 	selection = selectBests(fitness);
@@ -238,7 +230,7 @@ function [result, history] = maximize(fn, constraints, config)
 	children = crossover(mating_pool, crossover_fn, l, Pc);
 
 	%% Mutation
-	population = mutate(children, mutation_fn, l, Pm);
+	population = mutation_fn(children, l, Pm);
   end
 
   fitness = evalFitness(population, fn, constraints, l);
@@ -248,7 +240,7 @@ function [result, history] = maximize(fn, constraints, config)
   
   result = Utils.dec2val(best, constraints, l);
 
-  history(G_max + 1) = create_record(population, fitness, constraints, l);
+  history(G_max + 1) = createRecord(population, fitness, constraints, l);
 
   fprintf(1, 'Duration: %ds\n', time - _starting_time);
 end
