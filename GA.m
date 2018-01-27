@@ -19,15 +19,8 @@ function result = initialGeneration(N, constraints, l)
   result = randi(max_val, N, var_count);
 end
 
-%% Convert an individual's decimal values between 0 and (2**l -1) to
-%% real values (between their corresponding min and max constraints).
-function result = dec2val(val, constraints, l)
-  max_val = 2**l-1;
-  result = ((val / max_val) .* (constraints(:, 2) - constraints(:, 1))') + constraints(:, 1)';
-end
-
 function result = evalFitness(population, fn, constraints, l)
-  real_values = dec2val(population, constraints, l);
+  real_values = Utils.dec2val(population, constraints, l);
   result = fn(real_values);
 end
 
@@ -193,7 +186,7 @@ end
 %% instead of the fitness value, but one can be evaluated here, and
 %% another not (variable number of arguments))...
 function result = create_record(population, fitness, constraints, l)
-  result.population = dec2val(population, constraints, l);
+  result.population = Utils.dec2val(population, constraints, l);
   result.fitness = fitness;
 
   [maxFitness, index] = max(fitness); 
@@ -253,7 +246,7 @@ function [result, history] = maximize(fn, constraints, config)
   [~, index_best] = max(fitness);
   best = population(index_best, :);
   
-  result = dec2val(best, constraints, l);
+  result = Utils.dec2val(best, constraints, l);
 
   history(G_max + 1) = create_record(population, fitness, constraints, l);
 
