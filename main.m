@@ -8,6 +8,7 @@ Problem;
 config = GA.defaultConfig();
 config.N = 100;
 config.l = 52;
+config.crossover_fn = Crossover.multiPoint(10);
 
 %% p1 = Problem.rosenbrock();
 %% config.G_max = 1000;
