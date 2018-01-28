@@ -1,23 +1,22 @@
-%% Includes
-Utils;
-Crossover;
-Mutation;
+function Ga
+  %% Includes
+  global UTILS;
+  global CROSSOVER;
+  global MUTATION;
 
-function export = GA
-  persistent export
+  global GA;
   
-  if (isempty(export))
-	export.maximize = @maximize;
-	export.minimize = @minimize;
+  
+  GA.maximize = @maximize;
+  GA.minimize = @minimize;
 
-	export.defaultConfig = @defaultConfig;
+  GA.defaultConfig = @defaultConfig;
 
-	export.showHistory = @showHistory;
-  end
+  GA.showHistory = @showHistory;
 end
 
 function result = initialGeneration(N, constraints, l)
-  max_val = 2**l-1;
+  max_val = 2^l-1;
   dim = size(constraints);
   var_count = dim(1);
 
@@ -25,7 +24,9 @@ function result = initialGeneration(N, constraints, l)
 end
 
 function result = evalFitness(population, fn, constraints, l)
-  real_values = Utils.dec2val(population, constraints, l);
+  global UTILS;
+  
+  real_values = UTILS.dec2val(population, constraints, l);
   result = fn(real_values);
 end
 
@@ -90,9 +91,7 @@ function result = crossover(mating_pool, crossover_fn, l, Pc)
   %% (By handling them separately, we do not have _any_ limitation)
   unchanged = mating_pool;
   unchanged(indices, :) = [];  %% Find which pair did _not_ crossover
-  go_through_crossover = crossover_fn(go_through_crossover(:, min_b),
-									  go_through_crossover(:, max_b),
-									  l);
+  go_through_crossover = crossover_fn(go_through_crossover(:, min_b), go_through_crossover(:, max_b), l);
 
   %% Flatten the result to have [i1; i2; ...] again, instead of
   %% [ [i1, i2]; [i3, i4]; ... ]
@@ -101,6 +100,8 @@ end
 
 %% TODO: Default value for iterations to be -1.
 function showHistory(problem, history, iterations)
+  global UTILS;
+  
   dim = size(history.iterations(1).bestIndividual);
   var_count = dim(2);
 
@@ -148,7 +149,7 @@ function showHistory(problem, history, iterations)
 	%% TODO: Find my old gradient function and use it here.
 	%% TODO: Show population at each iteration
 	if (var_count == 1)
-	  x = Utils.linspacea(problem.constraints, 1000);
+	  x = UTILS.linspacea(problem.constraints, 1000);
 	  
 	  plot(x, problem.objective_fn(x), objective_fn_format);
 	  plot(best_x, problem.objective_fn(best_x), individuals_format);
@@ -156,7 +157,7 @@ function showHistory(problem, history, iterations)
 	  plot(very_best, maxFitness, best_individual_format, 'markersize', best_individual_size);
 	  ylabel('F(x)');
 	else
-	  domain = Utils.linspacea(problem.constraints, 200); %% Less points because N^2...
+	  domain = UTILS.linspacea(problem.constraints, 200); %% Less points because N^2...
 	  x = domain(1, :);
 	  y = domain(2, :);
 
@@ -186,7 +187,9 @@ end
 %% instead of the fitness value, but one can be evaluated here, and
 %% another not (variable number of arguments))...
 function result = createRecord(population, fitness, constraints, l)
-  result.population = Utils.dec2val(population, constraints, l);
+  global UTILS;
+  
+  result.population = UTILS.dec2val(population, constraints, l);
   result.fitness = fitness;
 
   [maxFitness, index] = max(fitness); 
@@ -207,6 +210,8 @@ end
 %% - the best individual
 %% - it's fitness
 function [result, history] = maximize(fn, constraints, config)
+  global UTILS;
+  
   %% TODO: Parameter check and default value.
   N = config.N;
   l = config.l;
@@ -215,15 +220,15 @@ function [result, history] = maximize(fn, constraints, config)
   Pm = config.Pm;
   crossover_fn = config.crossover_fn;
   mutation_fn = config.mutation_fn;
-  
-  _starting_time = time();
+
+  tic;
 
   dim = size(constraints);
   var_count = dim(1);
   population = initialGeneration(N, constraints, l);
 
   history = {};
-  history.iterations(1:G_max+1) = struct;
+  history.iterations(1:G_max+1) = struct('population', [], 'fitness', [], 'bestIndividual', [], 'maxFitness', 0);
 
   for g = 1:G_max
 	%% Evaluation
@@ -234,7 +239,7 @@ function [result, history] = maximize(fn, constraints, config)
 	
 	%% Selection
 	selection = selectBests(fitness);
-	mating_pool = population(Utils.shuffle(selection), :);
+	mating_pool = population(UTILS.shuffle(selection), :);
 
 	%% Crossover
 	children = crossover(mating_pool, crossover_fn, l, Pc);
@@ -248,7 +253,7 @@ function [result, history] = maximize(fn, constraints, config)
   [~, index_best] = max(fitness);
   best = population(index_best, :);
   
-  result = Utils.dec2val(best, constraints, l);
+  result = UTILS.dec2val(best, constraints, l);
 
   history.iterations(G_max + 1) = createRecord(population, fitness, constraints, l);
   
@@ -256,7 +261,7 @@ function [result, history] = maximize(fn, constraints, config)
   best_iteration = history.iterations(very_best_index);
   history.very_best = struct('value', best_iteration.bestIndividual(1, :), 'fitness', max_fitness, 'iteration', very_best_index);
 
-  fprintf(1, 'Duration: %ds\n', time - _starting_time);
+  toc;
 end
 
 %% NOTE: Minimizing f(x) is maximizing g(x) = -f(x)
@@ -265,6 +270,9 @@ function [result, history] = minimize(fn, constraints, config)
 end
 
 function result = defaultConfig
+  global CROSSOVER;
+  global MUTATION;
+  
   result.N = 100; %% Population count
   result.G_max = 100; %% Max iteration count
   
@@ -276,6 +284,6 @@ function result = defaultConfig
   result.Pc = 0.5; %% Crossover probability
   result.Pm = 0.1; %% Mutation probability
   
-  result.crossover_fn = Crossover.singlePoint;
-  result.mutation_fn = Mutation.bitFlip;
+  result.crossover_fn = CROSSOVER.singlePoint;
+  result.mutation_fn = MUTATION.bitFlip;
 end

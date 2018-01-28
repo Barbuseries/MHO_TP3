@@ -1,13 +1,12 @@
-function export = Mutation
-  persistent export;
+function Mutation
+  global MUTATION;
   
-  if (isempty(export))
-	export.bitFlip = @bitFlip;
-  end
+  MUTATION.bitFlip = @bitFlip;
 end
 
-
 function result = bitFlip(children, l, Pm)
+  global UTILS;
+  
   %% NOTE: (See corresponding notes in Crossover)
   %% We may want mutation to be different for each variable, in that
   %% case, replace 1 by dim(2) and remove the multiplication by
@@ -16,7 +15,7 @@ function result = bitFlip(children, l, Pm)
   dim = size(children);
   %% TODO: Explain!
   mask_as_array = rand(dim(1), l, 1) <= Pm; %% Every allele that needs to mutate is 1 at the correponding index
-  mask = Utils.arrayToDec(mask_as_array) .* ones(dim);
+  mask = UTILS.arrayToDec(mask_as_array) .* ones(dim);
 
   result = bitxor(children, mask); %% Do a flip!
 end

@@ -1,22 +1,26 @@
-function export = Utils
+function Utils
   %% NOTE/TODO(@perf): Utils is evaluated in many places, this an overhead of
   %% ~10%.
   %% Making export persistent removes most of this overhead (now ~3%).
   %% See if static method improve this.
-  persistent export;
+  global UTILS;
+
+  UTILS.isMatlab = isMatlab();
   
-  if (isempty(export))
-	export.shuffle = @shuffle;
-	export.linspacea = @linspacea;
-	export.reduce = @reduce;
-	export.dec2val = @dec2val;
-	export.decode = @decode;
-	export.arrayToDec = @arrayToDec;
-
-	export.isMatlab = isMatlab();
-
-	export.DEBUG = struct('printFlag', @printFlag);
+  UTILS.shuffle = @shuffle;
+  
+  if (UTILS.isMatlab)
+	UTILS.linspacea = @linspacea_matlab;
+  else
+	UTILS.linspacea = @linspacea_octave;
   end
+  
+  UTILS.reduce = @reduce;
+  UTILS.dec2val = @dec2val;
+  UTILS.decode = @decode;
+  UTILS.arrayToDec = @arrayToDec;
+
+  UTILS.DEBUG = struct('printFlag', @printFlag);
 end
 
 function result = shuffle(a)
@@ -24,8 +28,14 @@ function result = shuffle(a)
   result = a(new_order);
 end
 
-function result = linspacea(a, n)
+function result = linspacea_octave(a, n)
   result = linspace(a(:, 1), a(:, 2), n);
+end
+
+%% Matlab's linspace does not allow array as inputs...
+function result = linspacea_matlab(a, n)
+  x = linspace(0, 1, n);
+  result = (a(:, 2) - a(:, 1)) .* x + a(:, 1);
 end
 
 function result = reduce(fn, a, v)
@@ -36,11 +46,11 @@ function result = reduce(fn, a, v)
   result = v;
 end
 
-%% Convert an individual's decimal values between 0 and (2**l -1) to
+%% Convert an individual's decimal values between 0 and (2^l -1) to
 %% real values (between their corresponding min and max constraints).
 %% TODO: Use l == -1 as 'no encoding took place'.
 function result = dec2val(val, constraints, l)
-  max_val = 2**l-1;
+  max_val = 2^l-1;
   result = ((val / max_val) .* (constraints(:, 2) - constraints(:, 1))') + constraints(:, 1)';
 end
 
@@ -50,7 +60,7 @@ end
 
 function result = arrayToDec(a)
   dim = size(a);
-  result = sum(a .* 2 .** ((dim(2)-1):-1:0), 2);
+  result = sum(a .* 2 .^ ((dim(2)-1):-1:0), 2);
 end
 
 %% TODO: Specify length
