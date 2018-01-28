@@ -39,7 +39,7 @@ function result = selectBests(fitness)
   %% Remove negative fitness and a little more, so their relative
   %% fitness is not 0 (not selectable).
   if (min_fitness < 0)
-	fitness -= 2 * min(fitness);
+	fitness = fitness - 2 * min(fitness);
   end
   
   cumulative_sum = cumsum(fitness / sum(fitness));
