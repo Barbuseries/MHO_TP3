@@ -3,7 +3,7 @@ function export = Mutation
 end
 
 
-function result = bitFlip(child, l, Pm)
+function result = bitFlip(children, l, Pm)
   %% NOTE: (See corresponding notes in Crossover)
   %% We may want mutation to be different for each variable, in that
   %% case, replace 1 by dim(2) and remove the multiplication by
@@ -14,5 +14,5 @@ function result = bitFlip(child, l, Pm)
   mask_as_array = rand(dim(1), l, 1) <= Pm; %% Every allele that needs to mutate is 1 at the correponding index
   mask = Utils.arrayToDec(mask_as_array) .* ones(dim);
 
-  result = bitxor(child, mask); %% Do a flip!
+  result = bitxor(children, mask); %% Do a flip!
 end

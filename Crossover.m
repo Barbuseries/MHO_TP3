@@ -30,7 +30,7 @@ function result = _multiPoint(n, a, b, l)
 
   %% TODO: Explain!
   flags = (2 .** points) - 1;
-  mask = bitxor(flags, 0);
+  mask = Utils.reduce(@bitxor, flags, 0);
   
   result = combineWithMask(a, b, mask, l);
 end
