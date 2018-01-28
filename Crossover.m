@@ -4,10 +4,6 @@ function export = Crossover
   export.uniform = @uniform;
 end
 
-%% NOTE: There _may_ be a way to merge singlePoint and multiPoint into
-%% the same function. But it would make my head explode, so no.
-%% NOTE (following): Oh man, I really did it...
-
 function h = multiPoint(n)
   h = @(a, b, l) _multiPoint(n, a, b, l);
 end
@@ -62,7 +58,10 @@ function result = _uniform(p, a, b, l)
   %% variables. If it is not the case, change '1' to be the number
   %% of variables and remove upper and lower multiplication by
   %% ones(size(a)) (see NOTE in combineWithMask).
-  %%TODO: Explain!
+  %% TODO: Explain!
+  %% NOTE: Btw, if p == 0.5, the mask could just be a random integer
+  %% between 0 and (2**l - 1).
+  %% But this rarely ever happens, so...
   mask_as_array = rand(size(a)(1), l, 1) >= p;
   mask = Utils.arrayToDec(mask_as_array);
   
@@ -73,8 +72,7 @@ function result = combineWithMask(a, b, mask, l)
   max_val = 2**l - 1;
 
   %% NOTE: This is to use array application of bit functions, so I do
-  %% not have to manually create a loop (which is / should be / most
-  %% of the time is slower).
+  %% not have to manually create a loop (which is slower).
   mask = mask .* ones(size(a));
   inv_mask = bitxor(mask, max_val);
   

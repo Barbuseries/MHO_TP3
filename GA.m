@@ -24,12 +24,11 @@ function result = evalFitness(population, fn, constraints, l)
   result = fn(real_values);
 end
 
-%% FIXME(@perf): This is now the bottleneck.
-%% (See last TODO, the time has come...)
+%% TODO: This actually just a wheel selection.
+%%       Move this function (and rename) to a Selection.m file.
+%%       Add a field in config to specify the selection_fn.
+%%       Let selection functions handle negative fitness values.
 function result = selectBests(fitness)
-  %% TODO: Some selection methods do not care about negative fitness values.
-  %% When implementing them, move this to the ones who care and assert?
-
   min_fitness = min(fitness);
   
   %% Remove negative fitness and a little more, so their relative
@@ -38,23 +37,25 @@ function result = selectBests(fitness)
 	fitness -= 2 * min(fitness);
   end
   
-  relative_fitness = fitness / sum(fitness);
+  cumulative_sum = cumsum(fitness / sum(fitness));
 
-  cumulative_sum = cumsum(relative_fitness);
+  %% We need to select as many individuals as there already are.
+  wheel = rand(length(fitness), 1);
 
-  count = length(relative_fitness);
-  result = zeros(1, count);
-
-  %% TODO: I'm sure there is a way to one-line this.
-  %% AND I WILL FIND IT!
-  i = 1;
-  while (i <= count)
-	rand_val = rand();
-
-	result(i) = find(cumulative_sum >= rand_val, 1, 'first');
-
-	i += 1;
-  end
+  %% NOTE: I did not find a way to 'find' (pun intended) in a matrix
+  %% row-wise (meaning that I want, for each row, the result of the
+  %% find for this row (it must be because matrices row and column
+  %% sizes must be constant)) without introducing an explicit
+  %% loop. Therefore, instead of using find, I use max which returns
+  %% (as well as the value, which is one anyway) the first index
+  %% corresponding to this value. To make it operate on rows, the
+  %% second parameter is ignored and I must give it a dimension
+  %% parameter (BY_ROW).
+  %% NOTE(@perf): Replacing the for loop by max made this function at
+  %% least 20 times faster. There may be a way to use find here in the
+  %% end, but it is fast enough anyway.
+  BY_ROW = 2;
+  [~, result] = max(cumulative_sum' >= wheel, [], BY_ROW);
 end
 
 function result = crossover(mating_pool, crossover_fn, l, Pc)

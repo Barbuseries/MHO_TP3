@@ -47,8 +47,8 @@ config.Pc = 0.8;
 config.Pm = 0.01;
 
 decode2 = Utils.decode(p2, config);
-config.crossover_fn = Crossover.uniform(@(x, y) (x ./ (x + y)), @(x) p2.fitness_fn(decode2(x)));
-## config.crossover_fn = Crossover.singlePoint;
+%% config.crossover_fn = Crossover.uniform(@(x, y) (x ./ (x + y)), @(x) p2.fitness_fn(decode2(x)));
+config.crossover_fn = Crossover.singlePoint;
 
 [result2, history2] = p2.optimize(config);
 
