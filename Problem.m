@@ -5,9 +5,13 @@ GA;
 %% could change their definition to call optimize directly (instead of
 %% Problem.<problem>().optimize(config) => Problem.<problem>(config)).
 function export = Problem
-  export.rosenbrock = @rosenbrockProblem;
-  export.griewank = @griewankProblem;
-  export.TOTO = @TOTOProblem;
+  persistent export;
+  
+  if (isempty(export))
+	export.rosenbrock = @rosenbrockProblem;
+	export.griewank = @griewankProblem;
+	export.TOTO = @TOTOProblem;
+  end
 end
 
 function result = rosenbrockProblem

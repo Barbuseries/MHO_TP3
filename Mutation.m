@@ -1,5 +1,9 @@
 function export = Mutation
-  export.bitFlip = @bitFlip;
+  persistent export;
+  
+  if (isempty(export))
+	export.bitFlip = @bitFlip;
+  end
 end
 
 

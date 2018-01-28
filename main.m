@@ -19,23 +19,29 @@ config.l = 52;
 config.crossover_fn = Crossover.uniform(0.5);
 
 %% p1 = Problem.rosenbrock();
-%% config.G_max = 1000;
-%% decode1 = Utils.decode(p1, config);
-%% config.crossover_fn = Crossover.uniform(@(x, y) (x ./ (x + y)), @(x) p1.fitness_fn(decode1(x)));
-%% %% config.crossover_fn = Crossover.singlePoint;
+%% config.N = 200;
+%% config.G_max = 1500;
+%% config.crossover_fn = Crossover.multiPoint(10);
 %% [result1, history1] = p1.optimize(config);
 
 %% disp(result1);
 %% disp(p1.objective_fn(result1(1), result1(2)));
+
+%% disp(history1.very_best.value);
 
 %% GA.showHistory(p1, history1, -1);
 
 %% p1 = Problem.griewank();
-%% config.G_max = 500;
+%% config.N = 200;
+%% config.G_max = 1500;
+%% decode1 = Utils.decode(p1, config);
+%% config.crossover_fn = Crossover.uniform(@(x, y) (x ./ (x + y)), @(x) p1.fitness_fn(decode1(x)));
 %% [result1, history1] = p1.optimize(config);
 
 %% disp(result1);
 %% disp(p1.objective_fn(result1(1), result1(2)));
+
+%% disp(history1.very_best.value);
 
 %% GA.showHistory(p1, history1, -1);
 
@@ -54,6 +60,8 @@ config.crossover_fn = Crossover.singlePoint;
 
 disp(result2);
 disp(p2.objective_fn(result2));
+
+disp(history2.very_best.value);
 
 GA.showHistory(p2, history2, -1);
 

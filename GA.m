@@ -4,17 +4,22 @@ Crossover;
 Mutation;
 
 function export = GA
-  export.maximize = @maximize;
-  export.minimize = @minimize;
+  persistent export
+  
+  if (isempty(export))
+	export.maximize = @maximize;
+	export.minimize = @minimize;
 
-  export.defaultConfig = @defaultConfig;
+	export.defaultConfig = @defaultConfig;
 
-  export.showHistory = @showHistory;
+	export.showHistory = @showHistory;
+  end
 end
 
 function result = initialGeneration(N, constraints, l)
   max_val = 2**l-1;
-  var_count = size(constraints)(1);
+  dim = size(constraints);
+  var_count = dim(1);
 
   result = randi(max_val, N, var_count);
 end
@@ -24,10 +29,10 @@ function result = evalFitness(population, fn, constraints, l)
   result = fn(real_values);
 end
 
-%% TODO: This actually just a wheel selection.
-%%       Move this function (and rename) to a Selection.m file.
-%%       Add a field in config to specify the selection_fn.
-%%       Let selection functions handle negative fitness values.
+%% TODO: This is actually just a wheel selection.
+%%       Move this function (and rename) to a Selection.m file. Add a
+%%       field in config to specify the selection_fn. Let selection
+%%       functions handle negative fitness values.
 function result = selectBests(fitness)
   min_fitness = min(fitness);
   
@@ -96,13 +101,14 @@ end
 
 %% TODO: Default value for iterations to be -1.
 function showHistory(problem, history, iterations)
-  var_count = size(history(1).bestIndividual)(2);
+  dim = size(history.iterations(1).bestIndividual);
+  var_count = dim(2);
 
   if (iterations == -1)
-	iterations = 1:length(history);
+	iterations = 1:length(history.iterations);
   end
   
-  values = history(iterations);
+  values = history.iterations(iterations);
   
   figure(1);
   clf;
@@ -111,12 +117,13 @@ function showHistory(problem, history, iterations)
   best_individual_format = 'g*';
   best_individual_size = 10;
 
-  [maxFitness, very_best_index] = max([values.maxFitness]);
-  very_best = values(very_best_index).bestIndividual;
+  very_best_iteration = history.very_best.iteration;
+  very_best = history.very_best.value;
+  maxFitness = history.very_best.fitness;
   
   plot(iterations, [values.maxFitness], '-+');
   
-  plot(iterations(very_best_index), maxFitness, best_individual_format, 'markersize', best_individual_size);
+  plot(iterations(very_best_iteration), maxFitness, best_individual_format, 'markersize', best_individual_size);
   
   xlabel('Iteration');
   ylabel('Max fitness');
@@ -211,17 +218,19 @@ function [result, history] = maximize(fn, constraints, config)
   
   _starting_time = time();
 
-  var_count = size(constraints)(1);
+  dim = size(constraints);
+  var_count = dim(1);
   population = initialGeneration(N, constraints, l);
-  
-  history(1:G_max+1) = struct;
+
+  history = {};
+  history.iterations(1:G_max+1) = struct;
 
   for g = 1:G_max
 	%% Evaluation
 	fitness = evalFitness(population, fn, constraints, l);
 
 	%% Recording
-	history(g) = createRecord(population, fitness, constraints, l);
+	history.iterations(g) = createRecord(population, fitness, constraints, l);
 	
 	%% Selection
 	selection = selectBests(fitness);
@@ -241,7 +250,11 @@ function [result, history] = maximize(fn, constraints, config)
   
   result = Utils.dec2val(best, constraints, l);
 
-  history(G_max + 1) = createRecord(population, fitness, constraints, l);
+  history.iterations(G_max + 1) = createRecord(population, fitness, constraints, l);
+  
+  [max_fitness, very_best_index] = max([history.iterations.maxFitness]);
+  best_iteration = history.iterations(very_best_index);
+  history.very_best = struct('value', best_iteration.bestIndividual(1, :), 'fitness', max_fitness, 'iteration', very_best_index);
 
   fprintf(1, 'Duration: %ds\n', time - _starting_time);
 end
