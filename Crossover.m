@@ -4,8 +4,12 @@ function Crossover
   CROSSOVER.singlePoint = multiPoint(1);
   CROSSOVER.multiPoint = @multiPoint;
   CROSSOVER.uniform = @uniform;
+
+  
+  CROSSOVER.whole_arithmetic = @whole_arithmetic;
 end
 
+%% Binary crossovers
 function h = multiPoint(n)
   h = @(a, b, l) multiPoint_(n, a, b, l);
 end
@@ -101,4 +105,14 @@ function result = makeChildren(a, b, m, im)
   c2 = bitor(bitand(b, m), bitand(a, im));
   
   result = [c1, c2];
+end
+
+
+%% Arithmetic crossovers
+function result = whole_arithmetic(a, b)
+  dim = size(a);
+  alpha = rand(dim(1), 1);
+  beta = 1 - alpha;
+
+  result = [(a .* alpha) + (beta .* b), (b .* alpha) + (beta .* a)];
 end

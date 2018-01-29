@@ -16,9 +16,9 @@ function Utils
   end
   
   UTILS.reduce = @reduce;
-  UTILS.dec2val = @dec2val;
   UTILS.decode = @decode;
   UTILS.arrayToDec = @arrayToDec;
+  UTILS.randomIn = @randomIn;
 
   UTILS.DEBUG = struct('printFlag', @printFlag);
 end
@@ -46,16 +46,19 @@ function result = reduce(fn, a, v)
   result = v;
 end
 
-%% Convert an individual's decimal values between 0 and (2^l -1) to
-%% real values (between their corresponding min and max constraints).
-%% TODO: Use l == -1 as 'no encoding took place'.
-function result = dec2val(val, constraints, l)
-  max_val = 2^l-1;
-  result = ((val / max_val) .* (constraints(:, 2) - constraints(:, 1))') + constraints(:, 1)';
+function h = decode(constraints, l)
+  if (l == -1)
+	h = @(val) val;
+  else
+	max_val = 2^l -1;
+	h = @(val) dec2val(val, constraints, max_val);
+  end
 end
 
-function h = decode(problem, config)
-  h = @(val) dec2val(val, problem.constraints, config.l);
+%% Convert an individual's decimal values between 0 and max_val to
+%% real values (between their corresponding min and max constraints).
+function result = dec2val(val, constraints, max_val)
+  result = ((val / max_val) .* (constraints(:, 2) - constraints(:, 1))') + constraints(:, 1)';
 end
 
 function result = arrayToDec(a)
@@ -73,4 +76,12 @@ end
 
 function result = isMatlab
   result = ~(exist ('OCTAVE_VERSION', 'builtin') > 0);
+end
+
+function result = randomIn(interval, N)
+  dim = size(interval);
+  count = dim(1);
+  
+  c = interval';
+  result = (c(2, :) - c(1, :)) .* rand(N, count) + c(1, :);
 end

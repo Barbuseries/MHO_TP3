@@ -16,18 +16,25 @@ function Ga
 end
 
 function result = initialGeneration(N, constraints, l)
-  max_val = 2^l-1;
-  dim = size(constraints);
-  var_count = dim(1);
-
-  result = randi(max_val, N, var_count);
-end
-
-function result = evalFitness(population, fn, constraints, l)
   global UTILS;
   
-  real_values = UTILS.dec2val(population, constraints, l);
-  result = fn(real_values);
+  if (l == -1)
+	result = UTILS.randomIn(constraints, N);
+  else
+	dim = size(constraints);
+	var_count = dim(1);
+	
+	max_val = 2^l-1;
+	dim = size(constraints);
+	var_count = dim(1);
+
+	result = randi(max_val, N, var_count);
+  end
+end
+
+function [fitness, real_values_pop] = evalFitness(population, fn, decode_fn)
+  real_values_pop = decode_fn(population);
+  fitness = fn(real_values_pop);
 end
 
 %% TODO: This is actually just a wheel selection.
@@ -91,7 +98,13 @@ function result = crossover(mating_pool, crossover_fn, l, Pc)
   %% (By handling them separately, we do not have _any_ limitation)
   unchanged = mating_pool;
   unchanged(indices, :) = [];  %% Find which pair did _not_ crossover
-  go_through_crossover = crossover_fn(go_through_crossover(:, min_b), go_through_crossover(:, max_b), l);
+
+  %% TODO: Move this check out of here.
+  if (l == -1)
+	go_through_crossover = crossover_fn(go_through_crossover(:, min_b), go_through_crossover(:, max_b));
+  else
+	go_through_crossover = crossover_fn(go_through_crossover(:, min_b), go_through_crossover(:, max_b), l);
+  end
 
   %% Flatten the result to have [i1; i2; ...] again, instead of
   %% [ [i1, i2]; [i3, i4]; ... ]
@@ -186,10 +199,8 @@ end
 %% TODO: Save objective_fn value (technically, it should be saved
 %% instead of the fitness value, but one can be evaluated here, and
 %% another not (variable number of arguments))...
-function result = createRecord(population, fitness, constraints, l)
-  global UTILS;
-  
-  result.population = UTILS.dec2val(population, constraints, l);
+function result = createRecord(population, fitness)
+  result.population = population;
   result.fitness = fitness;
 
   [maxFitness, index] = max(fitness); 
@@ -206,13 +217,19 @@ end
 %% Return the best individual from the last iteration as well as an
 %% history which contains, for each iteration:
 %% - the population (real values)
-%% - it's fitness
+%% - its fitness
 %% - the best individual
-%% - it's fitness
+%% - its fitness
+%% and the best overall individual (very_best) along with its value,
+%% its fitness and its iteration.
 function [result, history] = maximize(fn, constraints, config)
   global UTILS;
   
   %% TODO: Parameter check and default value.
+  
+  %% TODO: Make sure only binary crossover functions can be used if
+  %% l >= 1.
+  %% Same for arithmetic functions and l == -1.
   N = config.N;
   l = config.l;
   G_max = config.G_max;
@@ -220,6 +237,8 @@ function [result, history] = maximize(fn, constraints, config)
   Pm = config.Pm;
   crossover_fn = config.crossover_fn;
   mutation_fn = config.mutation_fn;
+
+  decode_fn = UTILS.decode(constraints, l);
 
   tic;
 
@@ -229,13 +248,13 @@ function [result, history] = maximize(fn, constraints, config)
 
   history = {};
   history.iterations(1:G_max+1) = struct('population', [], 'fitness', [], 'bestIndividual', [], 'maxFitness', 0);
-
+  
   for g = 1:G_max
 	%% Evaluation
-	fitness = evalFitness(population, fn, constraints, l);
+	[fitness, real_values_pop] = evalFitness(population, fn, decode_fn);
 
 	%% Recording
-	history.iterations(g) = createRecord(population, fitness, constraints, l);
+	history.iterations(g) = createRecord(real_values_pop, fitness);
 	
 	%% Selection
 	selection = selectBests(fitness);
@@ -245,17 +264,20 @@ function [result, history] = maximize(fn, constraints, config)
 	children = crossover(mating_pool, crossover_fn, l, Pc);
 
 	%% Mutation
-	population = mutation_fn(children, l, Pm);
+	%% TODO: This check can be done outside the loop.
+	if (l == -1)
+	  population = mutation_fn(children, constraints, Pm);
+	else
+	  population = mutation_fn(children, l, Pm);
+	end
   end
 
-  fitness = evalFitness(population, fn, constraints, l);
+  [fitness, real_values_pop] = evalFitness(population, fn, decode_fn);
 
   [~, index_best] = max(fitness);
-  best = population(index_best, :);
+  result = real_values_pop(index_best, :);
   
-  result = UTILS.dec2val(best, constraints, l);
-
-  history.iterations(G_max + 1) = createRecord(population, fitness, constraints, l);
+  history.iterations(G_max + 1) = createRecord(real_values_pop, fitness);
   
   [max_fitness, very_best_index] = max([history.iterations.maxFitness]);
   best_iteration = history.iterations(very_best_index);

@@ -5,15 +5,15 @@
       - minimization and negative values                 (both)
       - baisc history and plots                          (both)
 	  - uniform crossover (parameterized)                (binary)
+	  - real valued genetic algorithm with configuration (real)
+	  - whole arithmetic crossover                       (real)
+	  - uniform mutation                                 (real)
 
 # TODO 
       
-      - real valued genetic algorithm with configuration (real) - NEXT 1
-      - whole arithmetic crossover                       (real)
       - local arithmetic crossover                       (real)
       - blend crossover                                  (real)
       - simulated binary crossover                       (real)
-      - uniform mutation                                 (real)
       - boundary mutation                                (real)
       - nonuniform mutation                              (real)
       - normal mutation                                  (real)
