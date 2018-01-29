@@ -8,13 +8,13 @@
 	  - real valued genetic algorithm with configuration (real)
 	  - whole arithmetic crossover                       (real)
 	  - uniform mutation                                 (real)
+	  - boundary mutation                                (real)
 
 # TODO 
       
       - local arithmetic crossover                       (real)
       - blend crossover                                  (real)
       - simulated binary crossover                       (real)
-      - boundary mutation                                (real)
       - nonuniform mutation                              (real)
       - normal mutation                                  (real)
       - polynomial mutation                              (real)

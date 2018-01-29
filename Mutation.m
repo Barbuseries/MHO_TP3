@@ -6,6 +6,7 @@ function Mutation
 
   %% Arithmetic
   MUTATION.uniform = @uniform;
+  MUTATION.boundary = @boundary;
 end
 
 function result = bitFlip(children, l, Pm)
@@ -37,4 +38,26 @@ function result = uniform(children, constraints, Pm)
   %% TODO(@perf): This can probably be improved (I hope).
   mutations = rand(N, var_count, 1) <= Pm;  %% Every allele that needs to mutate is 1 at the correponding index
   result = children .* (mutations == 0) + mutations .* UTILS.randomIn(constraints, N);
+end
+
+function result = boundary(children, constraints, Pm)
+  global UTILS;
+  
+  dim = size(children);
+  dim2 = size(constraints);
+
+  N = dim(1);
+  var_count = dim2(1);
+  
+  mutations = rand(N, var_count, 1) <= Pm;  %% Every allele that needs to mutate is 1 at the correponding index
+
+  %% TODO(@perf): This can probably be improved (I hope).
+  %% TODO: Explain!
+  mutations = mutations .* rand(N, var_count, 1); 
+  
+  keep = children .* (mutations == 0);
+  clamp_up = constraints(:, 2)' .* (mutations > 0.5);
+  clamp_down = constraints(:, 1)' .* ((mutations > 0) & (mutations <= 0.5));
+  
+  result = keep + clamp_up + clamp_down;
 end
