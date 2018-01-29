@@ -9,10 +9,10 @@
 	  - whole arithmetic crossover                       (real)
 	  - uniform mutation                                 (real)
 	  - boundary mutation                                (real)
+	  - local arithmetic crossover                       (real)
 
 # TODO 
       
-      - local arithmetic crossover                       (real)
       - blend crossover                                  (real)
       - simulated binary crossover                       (real)
       - nonuniform mutation                              (real)

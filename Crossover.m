@@ -6,7 +6,8 @@ function Crossover
   CROSSOVER.uniform = @uniform;
 
   
-  CROSSOVER.whole_arithmetic = @whole_arithmetic;
+  CROSSOVER.whole_arithmetic = @(a, b) arithmetic_crossover_(1, a, b);
+  CROSSOVER.local_arithmetic = @local_arithmetic;
 end
 
 %% Binary crossovers
@@ -109,9 +110,16 @@ end
 
 
 %% Arithmetic crossovers
-function result = whole_arithmetic(a, b)
+function result = local_arithmetic(a, b)
   dim = size(a);
-  alpha = rand(dim(1), 1);
+  var_count = dim(2);
+
+  result = arithmetic_crossover_(var_count, a, b);
+end
+
+function result = arithmetic_crossover_(n, a, b)
+  dim = size(a);
+  alpha = rand(dim(1), n);
   beta = 1 - alpha;
 
   result = [(a .* alpha) + (beta .* b), (b .* alpha) + (beta .* a)];

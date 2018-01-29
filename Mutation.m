@@ -9,6 +9,12 @@ function Mutation
   MUTATION.boundary = @boundary;
 end
 
+%% TODO: Seems like what is called here 'mask_as_array' and in other
+%% places 'mutations' can be moved out of this and just be passed as a
+%% parameter (instead of Pm).
+%% Which is somewhat logical, crossover methods do not care about Pc,
+%% why should mutations method care about Pm? They change on _how_
+%% they modify things, not when.
 function result = bitFlip(children, l, Pm)
   global UTILS;
   
