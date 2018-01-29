@@ -169,10 +169,10 @@ function showHistory(problem, history, iterations)
 	  x = domain(1, :);
 	  y = domain(2, :);
 
-	  %% FIXME: There is an offset between the result of objective_fn
-	  %% on the meshgrid and the individuals' coordinates... weird!
+	  %% TODO(@knowledge): See why we need to transpose xx and yy for
+	  %% z to be accurate.
 	  [xx, yy] = meshgrid(x, y);
-	  z = problem.objective_fn(xx, yy)';
+	  z = problem.objective_fn(xx', yy')';
 	  mesh(x, y, z);
 
 	  best_y = best_individuals(:, 2);
