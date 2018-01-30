@@ -1,13 +1,16 @@
 function Crossover
   global CROSSOVER;
-  
+
+  %% Binary
   CROSSOVER.singlePoint = multiPoint(1);
   CROSSOVER.multiPoint = @multiPoint;
   CROSSOVER.uniform = @uniform;
 
-  
+
+  %% Arithmetic
   CROSSOVER.whole_arithmetic = @(a, b) arithmetic_crossover_(1, a, b);
   CROSSOVER.local_arithmetic = @local_arithmetic;
+  CROSSOVER.blend = @blend;
 end
 
 %% Binary crossovers
@@ -124,3 +127,46 @@ function result = arithmetic_crossover_(n, a, b)
 
   result = [(a .* alpha) + (beta .* b), (b .* alpha) + (beta .* a)];
 end
+
+%% TODO: It does not seem correct to need for the user to give the
+%% constraints once again. This should be taken care of by Ga (but
+%% only a few crossover methods actually create children outside the
+%% range, so...).
+function h = blend(constraints, alpha)
+  if ~exist('alpha', 'var')
+	alpha = 0.5;
+  end
+  
+  h = @(a, b) blend_(constraints, alpha, a, b);
+end
+
+function result = blend_(constraints, alpha, a, b)
+  dim = size(a);
+  N = dim(1);
+  var_count = dim(2);
+  
+  max_vals = a .* (a >= b) + b .* (b > a);
+  min_vals = a .* (a <= b) + b .* (b < a);
+
+  delta = alpha * (max_vals - min_vals);
+  lb = min_vals - delta;
+  ub= max_vals + delta;
+
+  lowest = constraints(:, 1)';
+  biggest = constraints(:, 2)';
+
+  %% YES!
+  result = [blend_child(lowest, biggest, lb, ub, N, var_count), blend_child(lowest, biggest, lb, ub, N, var_count)];
+end
+
+function result = blend_child(lowest, biggest, lb, ub, N, var_count)
+  result = (ub - lb) .* rand(N, var_count) + lb;
+  
+  below = result < lowest;
+  above = result > biggest;
+
+  %% Clamp variables inside their given constrains (between lowest and
+  %% biggest).
+  result = result .* (~below & ~above) + lowest .* below + biggest .* above;
+end
+
