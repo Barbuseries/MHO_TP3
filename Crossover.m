@@ -161,12 +161,6 @@ end
 
 function result = blend_child(lowest, biggest, lb, ub, N, var_count)
   result = (ub - lb) .* rand(N, var_count) + lb;
-  
-  below = result < lowest;
-  above = result > biggest;
-
-  %% Clamp variables inside their given constrains (between lowest and
-  %% biggest).
-  result = result .* (~below & ~above) + lowest .* below + biggest .* above;
+  result = max(min(result, biggest), lowest);
 end
 
