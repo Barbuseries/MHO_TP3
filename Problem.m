@@ -1,6 +1,12 @@
 %% TODO?: As we already have to type Problem.<problem>(), maybe we
 %% could change their definition to call optimize directly (instead of
 %% Problem.<problem>().optimize(config) => Problem.<problem>(config)).
+
+%% IMPORTANT/TODO: Use temp = num2cell(decode(population)',
+%% var_count); fn(temp[:}]) to eval a function which takes var_count
+%% parameters.
+%% This removes the need to make the fitness_fn hugly, AND allows us
+%% to store objective_fn somewhere.
 function Problem
   global PROBLEM;
   
@@ -11,7 +17,7 @@ end
 
 function result = rosenbrockProblem
   result.objective_fn = @Rosenbrock;
-  result.fitness_fn = @(p) Rosenbrock(p(:, 1), p(:, 2));
+  result.fitness_fn = @Rosenbrock;
   result.constraints = [[0, 2]
 					    [0, 3]];
 
@@ -20,7 +26,7 @@ end
 
 function result = griewankProblem
   result.objective_fn = @Griewank;
-  result.fitness_fn = @(p) Griewank(p(:, 1), p(:, 2));
+  result.fitness_fn = @Griewank;
   result.constraints = [[-30, 30]
 					    [-30, 30]];
 
@@ -29,7 +35,7 @@ end
 
 function result = TOTOProblem
   result.objective_fn = @TOTO;
-  result.fitness_fn = @(p) TOTO(p(:, 1));
+  result.fitness_fn = @TOTO;
   result.constraints = [[-1, 2]];
 
   result.optimize = optimize(result, 1);
@@ -54,8 +60,8 @@ function result = optimize(problem, maximize)
   global GA;
   
   if (maximize == 1)
-	result = @(config) GA.maximize(problem.fitness_fn, problem.constraints, config);
+	result = @(config) GA.maximize(problem.objective_fn, problem.fitness_fn, problem.constraints, config);
   else
-	result = @(config) GA.minimize(problem.fitness_fn, problem.constraints, config);
+	result = @(config) GA.minimize(problem.objective_fn, problem.fitness_fn, problem.constraints, config);
   end  
 end

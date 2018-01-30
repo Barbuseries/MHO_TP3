@@ -25,9 +25,11 @@ function result = initialGeneration(N, constraints, l)
   end
 end
 
-function [fitness, real_values_pop] = evalFitness(population, fn, decode_fn)
+function [fitness, real_values_pop] = evalFitnessAndPop(population, fn, decode_fn)
+  global UTILS;
+  
   real_values_pop = decode_fn(population);
-  fitness = fn(real_values_pop);
+  fitness = UTILS.evalFn(fn, real_values_pop);
 end
 
 %% TODO: This is actually just a wheel selection.
@@ -63,7 +65,7 @@ function result = selectBests(fitness)
   %% NOTE(@perf): This is the bottleneck (of an already optimized
   %% script).
   BY_ROW = 2;
-  [~, result] = max(cumulative_sum' >= wheel, [], BY_ROW);
+  [~, result] = max(cumulative_sum >= wheel, [], BY_ROW);
 end
 
 function result = crossover(mating_pool, crossover_fn, l, Pc)
@@ -152,6 +154,7 @@ function showHistory(problem, history, iterations)
 	individuals_format = 'r+';
 	
 	best_x = best_individuals(:, 1);
+    vb_x = very_best(1);
 
 	%% TODO: Show iteration order
 	%% TODO: Find my old gradient function and use it here.
@@ -162,7 +165,7 @@ function showHistory(problem, history, iterations)
 	  plot(x, problem.objective_fn(x), objective_fn_format);
 	  plot(best_x, problem.objective_fn(best_x), individuals_format);
 
-	  plot(very_best, maxFitness, best_individual_format, 'markersize', best_individual_size);
+	  plot(vb_x, problem.objective_fn(vb_x), best_individual_format, 'markersize', best_individual_size);
 	  ylabel('F(x)');
 	else
 	  domain = UTILS.linspacea(problem.constraints, 200); %% Less points because N^2...
@@ -178,7 +181,8 @@ function showHistory(problem, history, iterations)
 	  best_y = best_individuals(:, 2);
 	  plot3(best_x, best_y, problem.objective_fn(best_x, best_y), individuals_format);
 
-	  plot3(very_best(1), very_best(2), maxFitness, best_individual_format, 'markersize', best_individual_size);
+      vb_y = very_best(2);
+	  plot3(vb_x, vb_y, problem.objective_fn(vb_x, vb_y), best_individual_format, 'markersize', best_individual_size);
 
 	  ylabel('Best individual y');
 	  zlabel('F(x, y)');
@@ -191,12 +195,12 @@ function showHistory(problem, history, iterations)
   end
 end
 
-%% TODO: Save objective_fn value (technically, it should be saved
-%% instead of the fitness value, but one can be evaluated here, and
-%% another not (variable number of arguments))...
-function result = createRecord(population, fitness)
+function result = createRecord(population, fitness, objective_fn)
+  global UTILS;
+  
   result.population = population;
   result.fitness = fitness;
+  result.objective = UTILS.evalFn(objective_fn, population);
 
   [maxFitness, index] = max(fitness); 
   result.bestIndividual = result.population(index, :);
@@ -217,7 +221,7 @@ end
 %% - its fitness
 %% and the best overall individual (very_best) along with its value,
 %% its fitness and its iteration.
-function [result, history] = maximize(fn, constraints, config)
+function [result, history] = maximize(objective_fn, fitness_fn, constraints, config)
   global UTILS;
   
   %% TODO: Parameter check and default value.
@@ -242,14 +246,14 @@ function [result, history] = maximize(fn, constraints, config)
   population = initialGeneration(N, constraints, l);
 
   history = {};
-  history.iterations(1:G_max+1) = struct('population', [], 'fitness', [], 'bestIndividual', [], 'maxFitness', 0);
+  history.iterations(1:G_max+1) = struct('population', [], 'fitness', [], 'objective', [], 'bestIndividual', [], 'maxFitness', 0);
   
   for g = 1:G_max
 	%% Evaluation
-	[fitness, real_values_pop] = evalFitness(population, fn, decode_fn);
+	[fitness, real_values_pop] = evalFitnessAndPop(population, fitness_fn, decode_fn);
 
 	%% Recording
-	history.iterations(g) = createRecord(real_values_pop, fitness);
+	history.iterations(g) = createRecord(real_values_pop, fitness, objective_fn);
 	
 	%% Selection
 	selection = selectBests(fitness);
@@ -261,18 +265,20 @@ function [result, history] = maximize(fn, constraints, config)
 	%% Mutation
 	%% TODO: This check can be done outside the loop.
 	if (l == -1)
-	  population = mutation_fn(children, constraints, Pm);
+	  mutations = rand(N, var_count, 1) <= Pm;  %% Every allele that needs to mutate is 1 at the correponding index
+	  population = mutation_fn(children, constraints, mutations);
 	else
-	  population = mutation_fn(children, l, Pm);
+	  mutations = rand(dim(1), l, 1) <= Pm; %% Every allele that needs to mutate is 1 at the correponding index
+	  population = mutation_fn(children, l, mutations);
 	end
   end
 
-  [fitness, real_values_pop] = evalFitness(population, fn, decode_fn);
+  [fitness, real_values_pop] = evalFitnessAndPop(population, fitness_fn, decode_fn);
 
   [~, index_best] = max(fitness);
   result = real_values_pop(index_best, :);
   
-  history.iterations(G_max + 1) = createRecord(real_values_pop, fitness);
+  history.iterations(G_max + 1) = createRecord(real_values_pop, fitness, objective_fn);
   
   [max_fitness, very_best_index] = max([history.iterations.maxFitness]);
   best_iteration = history.iterations(very_best_index);
@@ -282,8 +288,8 @@ function [result, history] = maximize(fn, constraints, config)
 end
 
 %% NOTE: Minimizing f(x) is maximizing g(x) = -f(x)
-function [result, history] = minimize(fn, constraints, config)
-  [result, history] = maximize(@(p) -fn(p), constraints, config);
+function [result, history] = minimize(obj_fn, fit_fn, constraints, config)
+  [result, history] = maximize(obj_fn, @(varargin) -fit_fn(varargin{:}), constraints, config);
 end
 
 function result = defaultConfig

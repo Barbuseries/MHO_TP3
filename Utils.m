@@ -19,6 +19,7 @@ function Utils
   UTILS.decode = @decode;
   UTILS.arrayToDec = @arrayToDec;
   UTILS.randomIn = @randomIn;
+  UTILS.evalFn = @evalFn;
 
   UTILS.DEBUG = struct('printFlag', @printFlag);
 end
@@ -84,4 +85,11 @@ function result = randomIn(interval, N)
   
   c = interval';
   result = (c(2, :) - c(1, :)) .* rand(N, count) + c(1, :);
+end
+
+function result = evalFn(fn, val_array)
+  %% TODO: Make sure this is correct. (It looks like it)
+  BY_COLUMN = 2;
+  to_var_arg = num2cell(val_array', BY_COLUMN);
+  result = fn(to_var_arg{:});
 end

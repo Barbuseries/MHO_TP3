@@ -145,8 +145,8 @@ function result = blend_(constraints, alpha, a, b)
   N = dim(1);
   var_count = dim(2);
   
-  max_vals = a .* (a >= b) + b .* (b > a);
-  min_vals = a .* (a <= b) + b .* (b < a);
+  max_vals = max(a, b);
+  min_vals = min(a, b);
 
   delta = alpha * (max_vals - min_vals);
   lb = min_vals - delta;
@@ -156,10 +156,10 @@ function result = blend_(constraints, alpha, a, b)
   biggest = constraints(:, 2)';
 
   %% YES!
-  result = [blend_child(lowest, biggest, lb, ub, N, var_count), blend_child(lowest, biggest, lb, ub, N, var_count)];
+  result = [blendChild(lowest, biggest, lb, ub, N, var_count), blendChild(lowest, biggest, lb, ub, N, var_count)];
 end
 
-function result = blend_child(lowest, biggest, lb, ub, N, var_count)
+function result = blendChild(lowest, biggest, lb, ub, N, var_count)
   result = (ub - lb) .* rand(N, var_count) + lb;
   result = max(min(result, biggest), lowest);
 end
