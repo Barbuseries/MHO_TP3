@@ -32,23 +32,18 @@ function [fitness, real_values_pop] = evalFitnessAndPop(population, fn, decode_f
   fitness = UTILS.evalFn(fn, real_values_pop);
 end
 
+%% NOTE: TODO below also relates to selectBests_octave.
+%%       Just so you know:
+%%         - the matlab version was found first
+%%         - it is 10% faster than the octave one (on matlab)
+%%         - the octave version is 2 times faster on octave (than the
+%%         - matlab version on octave)
 %% TODO: This is actually just a wheel selection.
 %%       Move this function (and rename) to a Selection.m file. Add a
 %%       field in config to specify the selection_fn. Let selection
 %%       functions handle negative fitness values.
-function result = selectBests(fitness)
-  min_fitness = min(fitness);
-  
-  %% Remove negative fitness and a little more, so their relative
-  %% fitness is not 0 (not selectable).
-  if (min_fitness < 0)
-	fitness = fitness - 2 * min(fitness);
-  end
-  
-  cumulative_sum = cumsum(fitness / sum(fitness));
-
-  %% We need to select as many individuals as there already are.
-  wheel = rand(length(fitness), 1);
+function result = selectBests_matlab(fitness)
+  [cumulative_sum, wheel] = selectBests_inner(fitness);
   
   %% NOTE: I did not find a way to 'find' (pun intended) in a matrix
   %% row-wise (meaning that I want, for each row, the result of the
@@ -66,6 +61,31 @@ function result = selectBests(fitness)
   %% script).
   BY_ROW = 2;
   [~, result] = max(cumulative_sum >= wheel, [], BY_ROW);
+end
+
+function result = selectBests_octave(fitness)
+  [cumulative_sum, wheel] = selectBests_inner(fitness);
+
+  %% NOTE(@perf): This is the bottleneck (of an already optimized
+  %% script).
+  %% TODO: Explain!
+  BY_ROW = 2;
+  result = (length(fitness) + 1) - sum(cumulative_sum >= wheel, BY_ROW);
+end
+
+function [cumulative_sum, wheel] = selectBests_inner(fitness)
+  min_fitness = min(fitness);
+  
+  %% Remove negative fitness and a little more, so their relative
+  %% fitness is not 0 (not selectable).
+  if (min_fitness < 0)
+	fitness = fitness - 2 * min(fitness);
+  end
+  
+  cumulative_sum = cumsum(fitness / sum(fitness));
+
+  %% We need to select as many individuals as there already are.
+  wheel = rand(length(fitness), 1);
 end
 
 function result = crossover(mating_pool, crossover_fn, l, Pc)
@@ -238,6 +258,12 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
   mutation_fn = config.mutation_fn;
 
   decode_fn = UTILS.decode(constraints, l);
+
+  if (UTILS.isMatlab)
+	selectBests = @selectBests_octave;
+  else
+	selectBests = @selectBests_octave;
+  end
 
   tic;
 
