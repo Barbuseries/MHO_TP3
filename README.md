@@ -12,11 +12,11 @@
 	  - local arithmetic crossover                       (real)
 	  - blend crossover                                  (real)
 	  - simulated binary crossover                       (real)
+      - normal mutation                                  (real)
 
 # TODO 
       
       - nonuniform mutation                              (real)
-      - normal mutation                                  (real)
       - polynomial mutation                              (real)
       - 2 methods checking solutions feasibility         (???)
       - stochastic universal sampling                    (???)
