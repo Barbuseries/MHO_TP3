@@ -11,6 +11,7 @@ function Crossover
   CROSSOVER.whole_arithmetic = @(a, b) arithmetic_crossover_(1, a, b);
   CROSSOVER.local_arithmetic = @local_arithmetic;
   CROSSOVER.blend = @blend;
+  CROSSOVER.simulatedBinary = @simulatedBinary;
 end
 
 %% Binary crossovers
@@ -155,7 +156,6 @@ function result = blend_(constraints, alpha, a, b)
   lowest = constraints(:, 1)';
   biggest = constraints(:, 2)';
 
-  %% YES!
   result = [blendChild(lowest, biggest, lb, ub, N, var_count), blendChild(lowest, biggest, lb, ub, N, var_count)];
 end
 
@@ -164,3 +164,26 @@ function result = blendChild(lowest, biggest, lb, ub, N, var_count)
   result = max(min(result, biggest), lowest);
 end
 
+function h = simulatedBinary(n)
+  h = @(a, b) simulatedBinary_(n, a, b);
+end
+
+function result = simulatedBinary_(n, a, b)
+  dim = size(a);
+  N = dim(1);
+  var_count = dim(2);
+  
+  u = rand(N, var_count);
+
+  below = u <= 0.5;
+  
+  %% TODO: Check those values are correct. (I think they are...)
+  below_sharp_s = (2 * u) .^ (1 / (n + 1)) .* below;
+  above_sharp_s = (2 * (1 - u)) .^ (- (1 / n) + 1) .* ~below;
+  
+  sharp_s = below_sharp_s + above_sharp_s;
+  common_part = 0.5 * (a + b);
+  delta = 0.5 * sharp_s .* (a - b);
+
+  result = [common_part + delta, common_part - delta];
+end

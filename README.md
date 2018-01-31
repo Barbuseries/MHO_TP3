@@ -11,10 +11,10 @@
 	  - boundary mutation                                (real)
 	  - local arithmetic crossover                       (real)
 	  - blend crossover                                  (real)
+	  - simulated binary crossover                       (real)
 
 # TODO 
       
-      - simulated binary crossover                       (real)
       - nonuniform mutation                              (real)
       - normal mutation                                  (real)
       - polynomial mutation                              (real)
