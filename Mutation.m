@@ -9,6 +9,7 @@ function Mutation
   MUTATION.boundary = @boundary;
   MUTATION.normal = @normal;
   MUTATION.normalN = @normalN;
+  MUTATION.polynomial = @polynomial;
 end
 
 function result = bitFlip(children, l, mutations)
@@ -89,5 +90,35 @@ function result = normalAnyInner_(sigma, children, constraints)
   biggest = constraints(:, 2)';
   
   result = children + sigma;
+  result = max(min(result, biggest), lowest);
+end
+
+function h = polynomial(n)
+  h = @(c, cs, m) polynomialInner_(n, c, cs, m);
+end
+
+
+function result = polynomialInner_(n, children, constraints, mutations)
+  dim = size(children);
+  
+  N = dim(1);
+  var_count = dim(2);
+  
+  delta_max = (constraints(:, 2) - constraints(:, 1))';
+
+  non_zero = (mutations == 1);
+  u = rand(N, var_count);
+
+  u_below = (u < 0.5);
+  u_above = ~u_below;
+
+  %% TODO: Explain!
+  inv = 1 / (n + 1);
+  xi = ((2 * u).^inv  - 1) .* u_below + (1 - (2 * (1 - u)).^inv) .* u_above;
+
+  lowest = constraints(:, 1)';
+  biggest = constraints(:, 2)';
+  
+  result = children + delta_max .* xi .* non_zero;
   result = max(min(result, biggest), lowest);
 end
