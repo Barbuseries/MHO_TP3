@@ -10,6 +10,7 @@ function Mutation
   MUTATION.normal = @normal;
   MUTATION.normalN = @normalN;
   MUTATION.polynomial = @polynomial;
+  MUTATION.nonUniform = @nonUniform;
 end
 
 %% Binary
@@ -123,5 +124,38 @@ function result = polynomialInner_(n, children, mutations, constraints)
   biggest = constraints(:, 2)';
   
   result = children + delta_max .* xi .* non_zero;
+  result = max(min(result, biggest), lowest);
+end
+
+function h = nonUniform(b)
+  h = @(c, m, cx) nonUniformInner_(b, c, m, cx);
+end
+
+function result = nonUniformInner_(b, children, mutations, context)
+  constraints = context.constraints;
+  g = context.iteration;
+  G_max = context.G_max;
+
+  dim = size(children);
+  N = dim(1);
+  var_count = dim(2);
+
+  lowest = constraints(:, 1)';
+  biggest = constraints(:, 2)';
+
+  non_zero = (mutations == 1);
+  u = rand(N, var_count);
+
+  u_below = (u < 0.5);
+  u_above = ~u_below;
+
+  %% TODO: Explain!
+  inv = ((1 - g) / G_max)^b;
+  delta_g = (1 - u.^inv);
+  
+  delta_above = (biggest - children) .* delta_g .* u_above;
+  delta_below = (children - lowest) .* delta_g .* u_below;
+
+  result = children + (delta_above - delta_below) .* non_zero;
   result = max(min(result, biggest), lowest);
 end

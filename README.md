@@ -14,10 +14,10 @@
 	  - simulated binary crossover                       (real)
       - normal mutation                                  (real)
 	  - polynomial mutation                              (real)
+	  - nonuniform mutation                              (real)
 
 # TODO 
       
-      - nonuniform mutation                              (real)
       - 2 methods checking solutions feasibility         (???)
       - stochastic universal sampling                    (???)
       - linear scale change                              (???)
