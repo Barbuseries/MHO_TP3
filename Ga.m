@@ -166,17 +166,6 @@ function result = createRecord(population, fitness, objective_fn)
   result.maxFitness = maxFitness;
 end
 
-function result = linearScaleChange(fitness)
-  f_mean = mean(fitness);
-  f_max = max(fitness);
-  f_min = min(fitness);
-
-  a = f_mean / (f_mean - f_min);
-  b = (f_mean * f_min) / (f_max - f_min);
-
-  result = a * fitness + b;
-end
-
 %% Maximize fn whose parameters are defined inside the given
 %% constraints.
 %% fn must only take one parameter. This parameter contains as many
@@ -206,11 +195,11 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
   
   Pc = config.Pc;
   Pm = config.Pm;
-  
+
+  fitness_change_fn = config.fitness_change_fn;
   selection_fn = config.selection_fn;
   crossover_fn = config.crossover_fn;
   mutation_fn = config.mutation_fn;
-  
 
   decode_fn = UTILS.decode(constraints, l);
 
@@ -228,7 +217,7 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
 
   history = {};
   history.iterations(1:G_max+1) = struct('population', [], 'fitness', [], 'objective', [], 'bestIndividual', [], 'maxFitness', 0);
-  
+
   for g = 1:G_max
 	if (l == -1)
 	  context.iteration = g;
@@ -241,7 +230,7 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
 	history.iterations(g) = createRecord(real_values_pop, fitness, objective_fn);
 
 	%% TODO: Fitness transfert if minimizing.
-	fitness = linearScaleChange(fitness);
+	fitness = fitness_change_fn(fitness);
 	
 	%% Selection
 	selection = selection_fn(fitness);
@@ -287,6 +276,7 @@ function [result, history] = minimize(obj_fn, fit_fn, constraints, config)
 end
 
 function result = defaultConfig
+  global FITNESS_CHANGE;
   global SELECTION;
   global CROSSOVER;
   global MUTATION;
@@ -302,6 +292,7 @@ function result = defaultConfig
   result.Pc = 0.5; %% Crossover probability
   result.Pm = 0.1; %% Mutation probability
 
+  result.fitness_change_fn = FITNESS_CHANGE.linearScale;
   result.selection_fn = SELECTION.wheel;
   result.crossover_fn = CROSSOVER.singlePoint;
   result.mutation_fn = MUTATION.bitFlip;

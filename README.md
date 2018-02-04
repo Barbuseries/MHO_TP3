@@ -17,11 +17,11 @@
 	  - nonuniform mutation                              (real)
 	  - stochastic universal sampling                    (both)
 	  - linear scale change                              (???)
+	  - sigma truncation                                 (???)
 
 # TODO 
       
       - 2 methods checking solutions feasibility         (???)
-      - sigma truncation                                 (???)
 	  - ranking methods                                  (???)
 	  - tournament selection                             (both)
 	  - steady state algorithm strategy                  (???)
