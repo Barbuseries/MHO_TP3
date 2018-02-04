@@ -168,7 +168,7 @@ end
 
 function result = rankProbabilities(fitness, ranking_fn)
   [~, sorted_indices] = sort(fitness);
-  result = ranking_fn(sorted_indices);
+  result = ranking_fn(sorted_indices - 1); %% ranks must be in [0, N - 1]
 end
 
 function result = fitnessProbabilities(fitness, fitness_change_fn)

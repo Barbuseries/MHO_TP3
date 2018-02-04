@@ -35,7 +35,7 @@ end
 
 function h = sigmaTruncation(c)
   if (c < 1) || (c > 5)
-	error("c must be in [1, 5]");
+	error('c must be in [1, 5].');
   else
 	h = @(f) sigmaTruncationInner_(c, f);
   end

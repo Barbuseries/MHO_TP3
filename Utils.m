@@ -1,8 +1,4 @@
 function Utils
-  %% NOTE/TODO(@perf): Utils is evaluated in many places, this an overhead of
-  %% ~10%.
-  %% Making export persistent removes most of this overhead (now ~3%).
-  %% See if static method improve this.
   global UTILS;
 
   UTILS.isMatlab = isMatlab();
@@ -90,7 +86,6 @@ function result = randomIn(interval, N)
 end
 
 function result = evalFn(fn, val_array)
-  %% TODO: Make sure this is correct. (It looks like it)
   BY_COLUMN = 2;
   to_var_arg = num2cell(val_array', BY_COLUMN);
   result = fn(to_var_arg{:});
