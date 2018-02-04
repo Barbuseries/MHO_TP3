@@ -26,17 +26,25 @@ function result = multiPoint_(n, a, b, l)
 	error('multipoint crossover: crossover count must be < chromosome length');
   end
   
-  %% NOTE: According to the slides, it should be left to the user to
-  %% specify weither or not variables are combined (and l may be
-  %% different for each).
-  %% NOTE/FIXME: This assumes the crossover point is the same for all
-  %% variables. If it is not the case, change 'n' to be n times the
-  %% number of variables and remove upper and lower multiplication by
-  %% ones(size(a)) (see NOTE in combineWithMask).
-  BY_COLUMN = 2;
   dim = size(a);
-  [~, indices] = sort(rand(dim(1), l - 1), BY_COLUMN);
-  points = sort(indices(:, 1:n), BY_COLUMN);
+  N = dim(1);
+  
+  %% NOTE: This check could be done elsewhere, but compared to the
+  %% function in itself, it does not impact performances.
+  if (n == 1)
+      points = randi(l - 1, N, 1); 
+  else
+      %% NOTE: According to the slides, it should be left to the user to
+      %% specify weither or not variables are combined (and l may be
+      %% different for each).
+      %% NOTE/FIXME: This assumes the crossover point is the same for all
+      %% variables. If it is not the case, change 'n' to be n times the
+      %% number of variables and remove upper and lower multiplication by
+      %% ones(size(a)) (see NOTE in combineWithMask).
+      BY_COLUMN = 2;
+      [~, indices] = sort(rand(N, l - 1), BY_COLUMN);
+      points = sort(indices(:, 1:n), BY_COLUMN);
+  end
 
   %% TODO: Explain!
   flags = (2 .^ points) - 1;
@@ -58,7 +66,7 @@ function h = uniform(p, t)
   end
   
   if (isnumeric(p))
-	if ((p < 0) | (p > 1))
+	if ((p < 0) || (p > 1))
 	  error('uniform: p in [0, 1]')
 	else
 	  h = @(a, b, l) uniform_(p, a, b, l);

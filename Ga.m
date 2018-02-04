@@ -32,62 +32,6 @@ function [fitness, real_values_pop] = evalFitnessAndPop(population, fn, decode_f
   fitness = UTILS.evalFn(fn, real_values_pop);
 end
 
-%% NOTE: TODO below also relates to selectBests_octave.
-%%       Just so you know:
-%%         - the matlab version was found first
-%%         - it is 10% faster than the octave one (on matlab)
-%%         - the octave version is 2 times faster on octave (than the
-%%         - matlab version on octave)
-%% TODO: This is actually just a wheel selection.
-%%       Move this function (and rename) to a Selection.m file. Add a
-%%       field in config to specify the selection_fn. Let selection
-%%       functions handle negative fitness values.
-function result = selectBests_matlab(fitness)
-  [cumulative_sum, wheel] = selectBests_inner(fitness);
-  
-  %% NOTE: I did not find a way to 'find' (pun intended) in a matrix
-  %% row-wise (meaning that I want, for each row, the result of the
-  %% find for this row (it must be because matrices row and column
-  %% sizes must be constant)) without introducing an explicit
-  %% loop. Therefore, instead of using find, I use max which returns
-  %% (as well as the value) the index of the first occurrence of one
-  %% (which is the max value). To make it operate on rows, the second
-  %% parameter is ignored and I must give it the dimension to operate
-  %% on (BY_ROW).
-  %% NOTE(@perf): Replacing the for loop by max made this function at
-  %% least 20 times faster. There may be a way to use find here in the
-  %% end, but I haven't found any.
-  %% NOTE(@perf): This is the bottleneck (of an already optimized
-  %% script).
-  BY_ROW = 2;
-  [~, result] = max(cumulative_sum >= wheel, [], BY_ROW);
-end
-
-function result = selectBests_octave(fitness)
-  [cumulative_sum, wheel] = selectBests_inner(fitness);
-
-  %% NOTE(@perf): This is the bottleneck (of an already optimized
-  %% script).
-  %% TODO: Explain!
-  BY_ROW = 2;
-  result = (length(fitness) + 1) - sum(cumulative_sum >= wheel, BY_ROW);
-end
-
-function [cumulative_sum, wheel] = selectBests_inner(fitness)
-  min_fitness = min(fitness);
-  
-  %% Remove negative fitness and a little more, so their relative
-  %% fitness is not 0 (not selectable).
-  if (min_fitness < 0)
-	fitness = fitness - 2 * min(fitness);
-  end
-  
-  cumulative_sum = cumsum(fitness / sum(fitness));
-
-  %% We need to select as many individuals as there already are.
-  wheel = rand(length(fitness), 1);
-end
-
 function result = crossover(mating_pool, crossover_fn, Pc, context)
   %% Modify mating pool to have an array of [i, j], so we do not have
   %% to introduce an explicit loop (usually slower) to compute the
@@ -246,19 +190,18 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
   %% Same for arithmetic functions and l == -1.
   N = config.N;
   l = config.l;
+  
   G_max = config.G_max;
+  
   Pc = config.Pc;
   Pm = config.Pm;
+  
+  selection_fn = config.selection_fn;
   crossover_fn = config.crossover_fn;
   mutation_fn = config.mutation_fn;
+  
 
   decode_fn = UTILS.decode(constraints, l);
-
-  if (UTILS.isMatlab)
-	selectBests = @selectBests_matlab;
-  else
-	selectBests = @selectBests_octave;
-  end
 
   tic;
 
@@ -287,7 +230,7 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
 	history.iterations(g) = createRecord(real_values_pop, fitness, objective_fn);
 	
 	%% Selection
-	selection = selectBests(fitness);
+	selection = selection_fn(fitness);
 	mating_pool = population(UTILS.shuffle(selection), :);
 
 	%% Crossover
@@ -330,6 +273,7 @@ function [result, history] = minimize(obj_fn, fit_fn, constraints, config)
 end
 
 function result = defaultConfig
+  global SELECTION;
   global CROSSOVER;
   global MUTATION;
   
@@ -343,7 +287,8 @@ function result = defaultConfig
   
   result.Pc = 0.5; %% Crossover probability
   result.Pm = 0.1; %% Mutation probability
-  
+
+  result.selection_fn = SELECTION.wheel;
   result.crossover_fn = CROSSOVER.singlePoint;
   result.mutation_fn = MUTATION.bitFlip;
 end

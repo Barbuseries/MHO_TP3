@@ -11,8 +11,10 @@ function Utils
   
   if (UTILS.isMatlab)
 	UTILS.linspacea = @linspacea_matlab;
+	UTILS.select = @select_matlab;
   else
 	UTILS.linspacea = @linspacea_octave;
+	UTILS.select = @select_octave;
   end
   
   UTILS.reduce = @reduce;
@@ -92,4 +94,38 @@ function result = evalFn(fn, val_array)
   BY_COLUMN = 2;
   to_var_arg = num2cell(val_array', BY_COLUMN);
   result = fn(to_var_arg{:});
+end
+
+%% TODO: Find a better name than 'select'.
+%% NOTE: TODO below also relates to select_octave.
+%%       Just so you know:
+%%         - the matlab version was found first
+%%         - it is 10% faster than the octave one (on matlab)
+%%         - the octave version is 2 times faster on octave (than the
+%%         - matlab version on octave)
+function result = select_matlab(cumulative_sum, values)
+  %% NOTE: I xdid not find a way to 'find' (pun intended) in a matrix
+  %% row-wise (meaning that I want, for each row, the result of the
+  %% find for this row (it must be because matrices row and column
+  %% sizes must be constant)) without introducing an explicit
+  %% loop. Therefore, instead of using find, I use max which returns
+  %% (as well as the value) the index of the first occurrence of one
+  %% (which is the max value). To make it operate on rows, the second
+  %% parameter is ignored and I must give it the dimension to operate
+  %% on (BY_ROW).
+  %% NOTE(@perf): Replacing the for loop by max made this function at
+  %% least 20 times faster. There may be a way to use find here in the
+  %% end, but I haven't found any.
+  %% NOTE(@perf): This is the bottleneck (of an already optimized
+  %% script).
+  BY_ROW = 2;
+  [~, result] = max(cumulative_sum >= values, [], BY_ROW);
+end
+
+function result = select_octave(cumulative_sum, values)
+  %% NOTE(@perf): This is the bottleneck (of an already optimized
+  %% script).
+  %% TODO: Explain!
+  BY_ROW = 2;
+  result = (length(fitness) + 1) - sum(cumulative_sum >= values, BY_ROW);
 end

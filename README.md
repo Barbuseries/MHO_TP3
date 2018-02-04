@@ -15,11 +15,11 @@
       - normal mutation                                  (real)
 	  - polynomial mutation                              (real)
 	  - nonuniform mutation                              (real)
+	  - stochastic universal sampling                    (both)
 
 # TODO 
       
       - 2 methods checking solutions feasibility         (???)
-      - stochastic universal sampling                    (???)
       - linear scale change                              (???)
       - sigma truncation                                 (???)
       - improve history and plots                        (one day)
