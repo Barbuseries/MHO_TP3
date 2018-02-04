@@ -8,7 +8,7 @@ function Crossover
 
 
   %% Arithmetic
-  CROSSOVER.whole_arithmetic = @(a, b) arithmetic_crossover_(1, a, b);
+  CROSSOVER.whole_arithmetic = @(a, b, cx) arithmetic_crossover_(1, a, b, cx);
   CROSSOVER.local_arithmetic = @local_arithmetic;
   CROSSOVER.blend = @blend;
   CROSSOVER.simulatedBinary = @simulatedBinary;
@@ -114,14 +114,14 @@ end
 
 
 %% Arithmetic crossovers
-function result = local_arithmetic(a, b)
+function result = local_arithmetic(a, b, ~)
   dim = size(a);
   var_count = dim(2);
 
   result = arithmetic_crossover_(var_count, a, b);
 end
 
-function result = arithmetic_crossover_(n, a, b)
+function result = arithmetic_crossover_(n, a, b, ~)
   dim = size(a);
   alpha = rand(dim(1), n);
   beta = 1 - alpha;
@@ -129,19 +129,17 @@ function result = arithmetic_crossover_(n, a, b)
   result = [(a .* alpha) + (beta .* b), (b .* alpha) + (beta .* a)];
 end
 
-%% TODO: It does not seem correct to need for the user to give the
-%% constraints once again. This should be taken care of by Ga (but
-%% only a few crossover methods actually create children outside the
-%% range, so...).
-function h = blend(constraints, alpha)
+function h = blend(alpha)
   if ~exist('alpha', 'var')
 	alpha = 0.5;
   end
   
-  h = @(a, b) blend_(constraints, alpha, a, b);
+  h = @(a, b, cx) blend_(alpha, a, b, cx);
 end
 
-function result = blend_(constraints, alpha, a, b)
+function result = blend_(alpha, a, b, context)
+  constraints = context.constraints;
+  
   dim = size(a);
   N = dim(1);
   var_count = dim(2);
@@ -165,10 +163,10 @@ function result = blendChild(lowest, biggest, lb, ub, N, var_count)
 end
 
 function h = simulatedBinary(n)
-  h = @(a, b) simulatedBinary_(n, a, b);
+  h = @(a, b, cx) simulatedBinary_(n, a, b, cx);
 end
 
-function result = simulatedBinary_(n, a, b)
+function result = simulatedBinary_(n, a, b, ~)
   dim = size(a);
   N = dim(1);
   var_count = dim(2);

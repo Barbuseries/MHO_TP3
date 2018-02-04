@@ -88,7 +88,7 @@ function [cumulative_sum, wheel] = selectBests_inner(fitness)
   wheel = rand(length(fitness), 1);
 end
 
-function result = crossover(mating_pool, crossover_fn, l, Pc)
+function result = crossover(mating_pool, crossover_fn, Pc, context)
   %% Modify mating pool to have an array of [i, j], so we do not have
   %% to introduce an explicit loop (usually slower) to compute the
   %% crossover of each parent pair.
@@ -116,12 +116,7 @@ function result = crossover(mating_pool, crossover_fn, l, Pc)
   unchanged = mating_pool;
   unchanged(indices, :) = [];  %% Find which pair did _not_ crossover
 
-  %% TODO: Move this check out of here.
-  if (l == -1)
-	go_through_crossover = crossover_fn(go_through_crossover(:, min_b), go_through_crossover(:, max_b));
-  else
-	go_through_crossover = crossover_fn(go_through_crossover(:, min_b), go_through_crossover(:, max_b), l);
-  end
+  go_through_crossover = crossover_fn(go_through_crossover(:, min_b), go_through_crossover(:, max_b), context);
 
   %% Flatten the result to have [i1; i2; ...] again, instead of
   %% [ [i1, i2]; [i3, i4]; ... ]
@@ -270,11 +265,21 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
   dim = size(constraints);
   var_count = dim(1);
   population = initialGeneration(N, constraints, l);
+  
+  if (l == -1)
+	context = struct('constraints', constraints, 'G_max', G_max, 'iteration', 0);
+  else
+	context = l;
+  end
 
   history = {};
   history.iterations(1:G_max+1) = struct('population', [], 'fitness', [], 'objective', [], 'bestIndividual', [], 'maxFitness', 0);
   
   for g = 1:G_max
+	if (l == -1)
+	  context.iteration = g;
+	end
+	
 	%% Evaluation
 	[fitness, real_values_pop] = evalFitnessAndPop(population, fitness_fn, decode_fn);
 
@@ -286,17 +291,23 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
 	mating_pool = population(UTILS.shuffle(selection), :);
 
 	%% Crossover
-	children = crossover(mating_pool, crossover_fn, l, Pc);
+	children = crossover(mating_pool, crossover_fn, Pc, context);
 
 	%% Mutation
 	%% TODO: This check can be done outside the loop.
 	if (l == -1)
 	  mutations = rand(N, var_count, 1) <= Pm;  %% Every allele that needs to mutate is 1 at the correponding index
-	  population = mutation_fn(children, constraints, mutations);
 	else
-	  mutations = rand(dim(1), l, 1) <= Pm; %% Every allele that needs to mutate is 1 at the correponding index
-	  population = mutation_fn(children, l, mutations);
+	  %% NOTE(MUTATIONS.bitFlip): (See corresponding notes in Crossover)
+	  %% We may want mutation to be different for each variable, in that
+	  %% case:
+	  %%  - Replace 1 by dim(2)
+	  %%  - Replace 'mask = UTILS.arrayToDec(mutations) .* ones(dim);'
+	  %%    by 'mask = reshape(UTILS.arrayToDec(mutations), [], 2);'
+	  mutations = rand(N, l, 1) <= Pm; %% Every allele that needs to mutate is 1 at the correponding index
 	end
+
+	population = mutation_fn(children, mutations, context);
   end
 
   [fitness, real_values_pop] = evalFitnessAndPop(population, fitness_fn, decode_fn);

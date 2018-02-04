@@ -12,13 +12,9 @@ function Mutation
   MUTATION.polynomial = @polynomial;
 end
 
-function result = bitFlip(children, l, mutations)
+%% Binary
+function result = bitFlip(children, mutations, ~)
   global UTILS;
-  
-  %% NOTE: (See corresponding notes in Crossover)
-  %% We may want mutation to be different for each variable, in that
-  %% case, replace 1 by dim(2) and remove the multiplication by
-  %% ones(dim).
   
   dim = size(children);
   %% TODO: Explain!
@@ -27,19 +23,22 @@ function result = bitFlip(children, l, mutations)
   result = bitxor(children, mask); %% Do a flip!
 end
 
-function result = uniform(children, constraints, mutations)
+%% Arithmetic
+function result = uniform(children, mutations, context)
   global UTILS;
-  
+    
   dim = size(children);
 
   N = dim(1);
   
   %% TODO: Explain!
   %% TODO(@perf): This can probably be improved (I hope).
-  result = children .* (mutations == 0) + mutations .* UTILS.randomIn(constraints, N);
+  result = children .* (mutations == 0) + mutations .* UTILS.randomIn(context.constraints, N);
 end
 
-function result = boundary(children, constraints, mutations) 
+function result = boundary(children, mutations, context)
+  constraints = context.constraints;
+  
   dim = size(children);
 
   N = dim(1);
@@ -57,7 +56,9 @@ function result = boundary(children, constraints, mutations)
 end
 
 %% TODO: Should the the sigma be random or set by the user?
-function result = normal(children, constraints, mutations)
+function result = normal(children, mutations, context)
+  constraints = context.constraints;
+  
   dim = size(children);
   
   N = dim(1);
@@ -69,7 +70,9 @@ end
 
 %% TODO: Should the the sigma be random or set by the user?
 %% TODO: This was not run!
-function result = normalN(children, constraints, mutations)
+function result = normalN(children, mutations, context)
+  constraints = context.constraints;
+  
   dim = size(children);
   
   N = dim(1);
@@ -94,11 +97,11 @@ function result = normalAnyInner_(sigma, children, constraints)
 end
 
 function h = polynomial(n)
-  h = @(c, cs, m) polynomialInner_(n, c, cs, m);
+  h = @(c, m, cx) polynomialInner_(n, c, m, cx.constraints);
 end
 
 
-function result = polynomialInner_(n, children, constraints, mutations)
+function result = polynomialInner_(n, children, mutations, constraints)
   dim = size(children);
   
   N = dim(1);
