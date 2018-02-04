@@ -16,10 +16,15 @@
 	  - polynomial mutation                              (real)
 	  - nonuniform mutation                              (real)
 	  - stochastic universal sampling                    (both)
+	  - linear scale change                              (???)
 
 # TODO 
       
       - 2 methods checking solutions feasibility         (???)
-      - linear scale change                              (???)
       - sigma truncation                                 (???)
+	  - ranking methods                                  (???)
+	  - tournament selection                             (both)
+	  - steady state algorithm strategy                  (???)
+	  - stop criteria                                    (???)
+	  - another variation operator                       (???)
       - improve history and plots                        (one day)

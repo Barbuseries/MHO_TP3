@@ -166,6 +166,17 @@ function result = createRecord(population, fitness, objective_fn)
   result.maxFitness = maxFitness;
 end
 
+function result = linearScaleChange(fitness)
+  f_mean = mean(fitness);
+  f_max = max(fitness);
+  f_min = min(fitness);
+
+  a = f_mean / (f_mean - f_min);
+  b = (f_mean * f_min) / (f_max - f_min);
+
+  result = a * fitness + b;
+end
+
 %% Maximize fn whose parameters are defined inside the given
 %% constraints.
 %% fn must only take one parameter. This parameter contains as many
@@ -228,6 +239,9 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
 
 	%% Recording
 	history.iterations(g) = createRecord(real_values_pop, fitness, objective_fn);
+
+	%% TODO: Fitness transfert if minimizing.
+	fitness = linearScaleChange(fitness);
 	
 	%% Selection
 	selection = selection_fn(fitness);
