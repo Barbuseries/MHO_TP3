@@ -166,6 +166,17 @@ function result = createRecord(population, fitness, objective_fn)
   result.maxFitness = maxFitness;
 end
 
+function result = rankProbabilities(fitness, ranking_fn)
+  [~, sorted_indices] = sort(fitness);
+  result = ranking_fn(sorted_indices);
+end
+
+function result = fitnessProbabilities(fitness, fitness_change_fn)
+  %% TODO: Fitness transfert if minimizing.
+  fitness = fitness_change_fn(fitness);
+  result = fitness / sum(fitness);
+end
+
 %% Maximize fn whose parameters are defined inside the given
 %% constraints.
 %% fn must only take one parameter. This parameter contains as many
@@ -182,7 +193,9 @@ end
 %% its fitness and its iteration.
 function [result, history] = maximize(objective_fn, fitness_fn, constraints, config)
   global UTILS;
-  
+  global RANKING;
+  global FITNESS_CHANGE;
+
   %% TODO: Parameter check and default value.
   
   %% TODO: Make sure only binary crossover functions can be used if
@@ -197,9 +210,25 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
   Pm = config.Pm;
 
   fitness_change_fn = config.fitness_change_fn;
+  ranking_fn = config.ranking_fn;
   selection_fn = config.selection_fn;
   crossover_fn = config.crossover_fn;
   mutation_fn = config.mutation_fn;
+
+  use_ranking = ~isequal(ranking_fn, RANKING.none);
+  use_fitness_change = ~isequal(fitness_change_fn, FITNESS_CHANGE.none);
+  
+  if (use_ranking && use_fitness_change)
+	warning('fitness_change_fn will be ignored because ranking_fn is set.');
+  end
+
+  if (use_ranking)
+	get_probabilities = @rankProbabilities;
+    probabilities_fn = ranking_fn;
+  else
+	get_probabilities = @fitnessProbabilities;
+    probabilities_fn = fitness_change_fn;
+  end
 
   decode_fn = UTILS.decode(constraints, l);
 
@@ -229,11 +258,9 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
 	%% Recording
 	history.iterations(g) = createRecord(real_values_pop, fitness, objective_fn);
 
-	%% TODO: Fitness transfert if minimizing.
-	fitness = fitness_change_fn(fitness);
-	
 	%% Selection
-	selection = selection_fn(fitness);
+	probabilities = get_probabilities(fitness, probabilities_fn);
+	selection = selection_fn(probabilities);
 	mating_pool = population(UTILS.shuffle(selection), :);
 
 	%% Crossover
@@ -276,6 +303,7 @@ function [result, history] = minimize(obj_fn, fit_fn, constraints, config)
 end
 
 function result = defaultConfig
+  global RANKING;
   global FITNESS_CHANGE;
   global SELECTION;
   global CROSSOVER;
@@ -292,6 +320,7 @@ function result = defaultConfig
   result.Pc = 0.5; %% Crossover probability
   result.Pm = 0.1; %% Mutation probability
 
+  result.ranking_fn = RANKING.none;
   result.fitness_change_fn = FITNESS_CHANGE.linearScale;
   result.selection_fn = SELECTION.wheel;
   result.crossover_fn = CROSSOVER.singlePoint;

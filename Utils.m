@@ -103,8 +103,10 @@ end
 %%         - it is 10% faster than the octave one (on matlab)
 %%         - the octave version is 2 times faster on octave (than the
 %%         - matlab version on octave)
-function result = select_matlab(cumulative_sum, values)
-  %% NOTE: I xdid not find a way to 'find' (pun intended) in a matrix
+function result = select_matlab(probabilities, values)
+  cumulative_sum = cumsum(probabilities);
+  
+  %% NOTE: I did not find a way to 'find' (pun intended) in a matrix
   %% row-wise (meaning that I want, for each row, the result of the
   %% find for this row (it must be because matrices row and column
   %% sizes must be constant)) without introducing an explicit
@@ -122,7 +124,9 @@ function result = select_matlab(cumulative_sum, values)
   [~, result] = max(cumulative_sum >= values, [], BY_ROW);
 end
 
-function result = select_octave(cumulative_sum, values)
+function result = select_octave(probabilities, values)
+  cumulative_sum = cumsum(probabilities);
+  
   %% NOTE(@perf): This is the bottleneck (of an already optimized
   %% script).
   %% TODO: Explain!

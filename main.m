@@ -3,6 +3,7 @@
 %% Includes
 Utils;         global UTILS;
 
+Ranking;       global RANKING;
 FitnessChange; global FITNESS_CHANGE;
 Selection;     global SELECTION;
 Crossover;     global CROSSOVER;
@@ -21,10 +22,11 @@ end
 p = PROBLEM.rosenbrock();
 
 config = GA.defaultConfig();
-config.N = 10;
+config.N = 1000;
 config.G_max = 1000;
 config.l = -1;
-config.fitness_change_fn = FITNESS_CHANGE.sigmaTruncation(2);
+config.ranking_fn = RANKING.linear(2, 0);
+config.fitness_change_fn = FITNESS_CHANGE.none;
 config.selection_fn = SELECTION.stochasticUniversalSampling;
 config.crossover_fn = CROSSOVER.blend();
 config.mutation_fn = MUTATION.uniform;
