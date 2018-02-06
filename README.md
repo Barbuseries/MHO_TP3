@@ -19,12 +19,12 @@
 	  - linear scale change                              (both)
 	  - sigma truncation                                 (both)
 	  - ranking methods                                  (both)
+	  - 2 methods checking solutions feasibility         (real)
 
 # TODO 
-      
-      - 2 methods checking solutions feasibility         (???)
+
 	  - tournament selection                             (both)
 	  - steady state algorithm strategy                  (???)
-	  - stop criteria                                    (???)
+	  - stop criteria                                    (???) - PARTIALLY
 	  - another variation operator                       (???)
       - improve history and plots                        (one day)

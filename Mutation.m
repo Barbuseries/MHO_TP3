@@ -66,14 +66,12 @@ function result = normal(children, mutations, context)
   
   %% TODO: Explain!
   sigma = rand(N, 1) .* (mutations == 1);
-  result = normalAnyInner_(sigma, children, constraints);
+  result = normalAnyInner_(sigma, children, context);
 end
 
 %% TODO: Should the the sigma be random or set by the user?
 %% TODO: This was not run!
 function result = normalN(children, mutations, context)
-  constraints = context.constraints;
-  
   dim = size(children);
   
   N = dim(1);
@@ -81,11 +79,14 @@ function result = normalN(children, mutations, context)
   
   %% TODO: Explain!
   sigma = rand(N, var_count) .* (mutations == 1);
-  result = normalAnyInner_(sigma, children, constraints);
+  result = normalAnyInner_(sigma, children, context);
 end
 
 %% TODO: Explain!
-function result = normalAnyInner_(sigma, children, constraints)
+function result = normalAnyInner_(sigma, children, context)
+  constraints = context.constraints;
+  clamp_fn = context.clamp_fn;
+  
   non_zero = (sigma ~= 0);
   sigma_non_zero = sigma(non_zero);
   sigma(non_zero) = sigma_non_zero .* normrnd(0, 1, size(sigma_non_zero));
@@ -94,15 +95,18 @@ function result = normalAnyInner_(sigma, children, constraints)
   biggest = constraints(:, 2)';
   
   result = children + sigma;
-  result = max(min(result, biggest), lowest);
+  result = clamp_fn(result, lowest, biggest);
 end
 
 function h = polynomial(n)
-  h = @(c, m, cx) polynomialInner_(n, c, m, cx.constraints);
+  h = @(c, m, cx) polynomialInner_(n, c, m, cx);
 end
 
 
-function result = polynomialInner_(n, children, mutations, constraints)
+function result = polynomialInner_(n, children, mutations, context)
+  constraints = context.constraints;
+  clamp_fn = context.clamp_fn;
+  
   dim = size(children);
   
   N = dim(1);
@@ -124,7 +128,7 @@ function result = polynomialInner_(n, children, mutations, constraints)
   biggest = constraints(:, 2)';
   
   result = children + delta_max .* xi .* non_zero;
-  result = max(min(result, biggest), lowest);
+  result = clamp_fn(result, lowest, biggest);
 end
 
 function h = nonUniform(b)
@@ -133,6 +137,8 @@ end
 
 function result = nonUniformInner_(b, children, mutations, context)
   constraints = context.constraints;
+  clamp_fn = context.clamp_fn;
+  
   g = context.iteration;
   G_max = context.G_max;
 
@@ -157,5 +163,5 @@ function result = nonUniformInner_(b, children, mutations, context)
   delta_below = (children - lowest) .* delta_g .* u_below;
 
   result = children + (delta_above - delta_below) .* non_zero;
-  result = max(min(result, biggest), lowest);
+  result = clamp_fn(result, lowest, biggest);
 end

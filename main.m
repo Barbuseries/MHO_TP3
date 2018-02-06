@@ -9,6 +9,7 @@ Selection;     global SELECTION;
 Crossover;     global CROSSOVER;
 Mutation;      global MUTATION;
 StopCriteria;  global STOP_CRITERIA;
+Clamp;         global CLAMP;
 Ga;            global GA;
 Problem;       global PROBLEM;
 
@@ -32,6 +33,7 @@ config.selection_fn = SELECTION.stochasticUniversalSampling;
 config.crossover_fn = CROSSOVER.blend();
 config.mutation_fn = MUTATION.uniform;
 config.stop_criteria_fn = STOP_CRITERIA.threshold(1.99);
+config.clamp_fn = CLAMP.fancy;
 [r, h] = p.optimize(config);
 
 disp(r);

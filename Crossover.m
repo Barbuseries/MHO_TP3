@@ -163,12 +163,14 @@ function result = blend_(alpha, a, b, context)
   lowest = constraints(:, 1)';
   biggest = constraints(:, 2)';
 
-  result = [blendChild(lowest, biggest, lb, ub, N, var_count), blendChild(lowest, biggest, lb, ub, N, var_count)];
+  clamp_fn = context.clamp_fn;
+
+  result = [blendChild(lowest, biggest, lb, ub, N, var_count, clamp_fn), blendChild(lowest, biggest, lb, ub, N, var_count, clamp_fn)];
 end
 
-function result = blendChild(lowest, biggest, lb, ub, N, var_count)
+function result = blendChild(lowest, biggest, lb, ub, N, var_count, clamp_fn)
   result = (ub - lb) .* rand(N, var_count) + lb;
-  result = max(min(result, biggest), lowest);
+  result = clamp_fn(result, lowest, biggest);
 end
 
 function h = simulatedBinary(n)

@@ -215,6 +215,7 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
   crossover_fn = config.crossover_fn;
   mutation_fn = config.mutation_fn;
   stop_criteria_fn = config.stop_criteria_fn;
+  clamp_fn = config.clamp_fn;
 
   use_ranking = ~isequal(ranking_fn, RANKING.none);
   use_fitness_change = ~isequal(fitness_change_fn, FITNESS_CHANGE.none);
@@ -240,7 +241,7 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
   population = initialGeneration(N, constraints, l);
   
   if (l == -1)
-	context = struct('constraints', constraints, 'G_max', G_max, 'iteration', 0);
+	context = struct('constraints', constraints, 'G_max', G_max, 'iteration', 0, 'clamp_fn', clamp_fn);
   else
 	context = l;
   end
@@ -258,7 +259,6 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
 	[fitness, real_values_pop] = evalFitnessAndPop(population, fitness_fn, decode_fn);
 
 	if (stop_criteria_fn(fitness))
-	  disp("Early break!")
 	  last_iteration = g;
 	  break
 	end
@@ -289,6 +289,15 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
 	end
 
 	population = mutation_fn(children, mutations, context);
+
+	%% NOTE: Currently, clamping the population inside the
+	%% consgtraints is done in each crossover / function that _can_
+	%% produce offsprings outside the bounds.
+	%% As this is not a performance issue, it could instead be
+	%% centralized here (clamping would be crossover and mutation have
+	%% taken place).
+	%% Since every mutation and crossover functions have been
+	%% implemented, it will probably not be done.
   end
 
   [fitness, real_values_pop] = evalFitnessAndPop(population, fitness_fn, decode_fn);
@@ -320,6 +329,7 @@ function result = defaultConfig
   global CROSSOVER;
   global MUTATION;
   global STOP_CRITERIA;
+  global CLAMP;
   
   result.N = 100; %% Population count
   result.G_max = 100; %% Max iteration count
@@ -338,4 +348,5 @@ function result = defaultConfig
   result.crossover_fn = CROSSOVER.singlePoint;
   result.mutation_fn = MUTATION.bitFlip;
   result.stop_criteria_fn = STOP_CRITERIA.time;
+  result.clamp_fn = CLAMP.default;
 end
