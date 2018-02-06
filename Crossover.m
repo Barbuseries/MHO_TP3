@@ -19,6 +19,7 @@ function h = multiPoint(n)
   h = @(a, b, l) multiPoint_(n, a, b, l);
 end
 
+%% TODO?: multiPoint crossover can be implemented for real values.
 function result = multiPoint_(n, a, b, l)
   global UTILS;
   

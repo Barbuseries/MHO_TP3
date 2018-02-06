@@ -214,6 +214,7 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
   selection_fn = config.selection_fn;
   crossover_fn = config.crossover_fn;
   mutation_fn = config.mutation_fn;
+  stop_criteria_fn = config.stop_criteria_fn;
 
   use_ranking = ~isequal(ranking_fn, RANKING.none);
   use_fitness_change = ~isequal(fitness_change_fn, FITNESS_CHANGE.none);
@@ -247,6 +248,7 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
   history = {};
   history.iterations(1:G_max+1) = struct('population', [], 'fitness', [], 'objective', [], 'bestIndividual', [], 'maxFitness', 0);
 
+  last_iteration = G_max + 1;
   for g = 1:G_max
 	if (l == -1)
 	  context.iteration = g;
@@ -255,6 +257,12 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
 	%% Evaluation
 	[fitness, real_values_pop] = evalFitnessAndPop(population, fitness_fn, decode_fn);
 
+	if (stop_criteria_fn(fitness))
+	  disp("Early break!")
+	  last_iteration = g;
+	  break
+	end
+	
 	%% Recording
 	history.iterations(g) = createRecord(real_values_pop, fitness, objective_fn);
 
@@ -287,9 +295,12 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
 
   [~, index_best] = max(fitness);
   result = real_values_pop(index_best, :);
-  
-  history.iterations(G_max + 1) = createRecord(real_values_pop, fitness, objective_fn);
-  
+
+  history.iterations(last_iteration) = createRecord(real_values_pop, fitness, objective_fn);
+
+  %% Remove skipped iterations
+  history.iterations(last_iteration+1:end) = [];
+
   [max_fitness, very_best_index] = max([history.iterations.maxFitness]);
   best_iteration = history.iterations(very_best_index);
   history.very_best = struct('value', best_iteration.bestIndividual(1, :), 'fitness', max_fitness, 'iteration', very_best_index);
@@ -308,6 +319,7 @@ function result = defaultConfig
   global SELECTION;
   global CROSSOVER;
   global MUTATION;
+  global STOP_CRITERIA;
   
   result.N = 100; %% Population count
   result.G_max = 100; %% Max iteration count
@@ -325,4 +337,5 @@ function result = defaultConfig
   result.selection_fn = SELECTION.wheel;
   result.crossover_fn = CROSSOVER.singlePoint;
   result.mutation_fn = MUTATION.bitFlip;
+  result.stop_criteria_fn = STOP_CRITERIA.time;
 end
