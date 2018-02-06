@@ -290,12 +290,12 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
 
 	population = mutation_fn(children, mutations, context);
 
-	%% NOTE: Currently, clamping the population inside the
-	%% consgtraints is done in each crossover / function that _can_
-	%% produce offsprings outside the bounds.
+	%% NOTE: Currently, clamping the population inside the constraints
+	%% is done in each crossover / function that _can_ produce
+	%% offsprings outside the bounds.
 	%% As this is not a performance issue, it could instead be
-	%% centralized here (clamping would be crossover and mutation have
-	%% taken place).
+	%% centralized here (clamping would be done after crossover and
+	%% mutation have taken place).
 	%% Since every mutation and crossover functions have been
 	%% implemented, it will probably not be done.
   end
