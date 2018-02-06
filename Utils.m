@@ -126,5 +126,5 @@ function result = select_octave(probabilities, values)
   %% script).
   %% TODO: Explain!
   BY_ROW = 2;
-  result = (length(fitness) + 1) - sum(cumulative_sum >= values, BY_ROW);
+  result = (length(probabilities) + 1) - sum(cumulative_sum >= values, BY_ROW);
 end
