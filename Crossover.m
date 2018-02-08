@@ -2,7 +2,7 @@ function Crossover
   global CROSSOVER;
 
   %% Binary
-  CROSSOVER.singlePoint = multiPoint(1);
+  CROSSOVER.singlePoint = @singlePoint;
   CROSSOVER.multiPoint = @multiPoint;
   CROSSOVER.uniform = @uniform;
 
@@ -15,6 +15,19 @@ function Crossover
 end
 
 %% Binary crossovers
+function result = singlePoint(a, b, l)
+  dim = size(a);
+  N = dim(1);
+  var_count = dim(2);
+  
+  %% NOTE: This check could be done elsewhere, but compared to the
+  %% function in itself, it does not impact performances.
+  points = randi(l - 1, N, var_count);
+      
+  flags = (2 .^ points) - 1;
+  result = combineWithMask(a, b, flags, l);
+end
+
 function h = multiPoint(n)
   h = @(a, b, l) multiPoint_(n, a, b, l);
 end
@@ -29,27 +42,28 @@ function result = multiPoint_(n, a, b, l)
   
   dim = size(a);
   N = dim(1);
+  var_count = dim(2);
   
-  %% NOTE: This check could be done elsewhere, but compared to the
-  %% function in itself, it does not impact performances.
   if (n == 1)
-      points = randi(l - 1, N, 1); 
+    result = singlePoint(a, b, l);
+ 	return
   else
       %% NOTE: According to the slides, it should be left to the user to
       %% specify weither or not variables are combined (and l may be
       %% different for each).
-      %% NOTE/FIXME: This assumes the crossover point is the same for all
-      %% variables. If it is not the case, change 'n' to be n times the
-      %% number of variables and remove upper and lower multiplication by
-      %% ones(size(a)) (see NOTE in combineWithMask).
+      %% This is _not_ handled (btw).
       BY_COLUMN = 2;
-      [~, indices] = sort(rand(N, l - 1), BY_COLUMN);
-      points = sort(indices(:, 1:n), BY_COLUMN);
+      [~, indices] = sort(rand(N, l - 1, var_count), BY_COLUMN);
+      points = sort(indices(:, 1:n, :), BY_COLUMN);
   end
 
   %% TODO: Explain!
   flags = (2 .^ points) - 1;
-  mask = UTILS.reduce(@bitxor, flags, 0);
+  mask = zeros(N, var_count);
+  
+  for i = 1:var_count
+    mask(:, i) = UTILS.reduce(@bitxor, flags(:, :, i), 0);
+  end
   
   result = combineWithMask(a, b, mask, l);
 end
@@ -107,7 +121,7 @@ function result = combineWithMask(a, b, mask, l)
 
   %% NOTE: This is to use array application of bit functions, so I do
   %% not have to manually create a loop (which is slower).
-  mask = mask .* ones(size(a));
+  %% mask = mask .* ones(size(a));
   inv_mask = bitxor(mask, max_val);
   
   result = makeChildren(a, b, mask, inv_mask);
