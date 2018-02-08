@@ -215,7 +215,7 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
   crossover_fn = config.crossover_fn;
   mutation_fn = config.mutation_fn;
   stop_criteria_fn = config.stop_criteria_fn;
-  clamp_fn = config.clamp_fn;
+  clamp_fn = config.clamp_fn; %% TODO: Indicate that it is not used with binary values.
 
   use_ranking = ~isequal(ranking_fn, RANKING.none);
   use_fitness_change = ~isequal(fitness_change_fn, FITNESS_CHANGE.none);
@@ -279,13 +279,7 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
 	if (l == -1)
 	  mutations = rand(N, var_count, 1) <= Pm;  %% Every allele that needs to mutate is 1 at the correponding index
 	else
-	  %% NOTE(MUTATIONS.bitFlip): (See corresponding notes in Crossover)
-	  %% We may want mutation to be different for each variable, in that
-	  %% case:
-	  %%  - Replace 1 by dim(2)
-	  %%  - Replace 'mask = UTILS.arrayToDec(mutations) .* ones(dim);'
-	  %%    by 'mask = reshape(UTILS.arrayToDec(mutations), [], 2);'
-	  mutations = rand(N, l, 1) <= Pm; %% Every allele that needs to mutate is 1 at the correponding index
+	  mutations = rand(N, l, var_count) <= Pm; %% Every allele that needs to mutate is 1 at the correponding index
 	end
 
 	population = mutation_fn(children, mutations, context);

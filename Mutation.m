@@ -18,8 +18,10 @@ function result = bitFlip(children, mutations, ~)
   global UTILS;
   
   dim = size(children);
+  var_count = dim(2);
+  
   %% TODO: Explain!
-  mask = UTILS.arrayToDec(mutations) .* ones(dim);
+  mask = reshape(UTILS.arrayToDec(mutations), [], var_count);
 
   result = bitxor(children, mask); %% Do a flip!
 end
