@@ -86,7 +86,7 @@ function h = uniform(p, t)
 	else
 	  h = @(a, b, l) uniform_(p, a, b, l);
 	end
-  elseif (is_function_handle(p) & is_function_handle(t))
+  elseif (is_function_handle(p) && is_function_handle(t))
 	%% TODO: If t is not defined, set to identity.
 	h = @(a, b, l) uniform_(p(t(a), t(b)), a, b, l);
   else
@@ -101,17 +101,17 @@ function result = uniform_(p, a, b, l)
   %% NOTE: According to the slides, it should be left to the user to
   %% specify weither or not variables are combined (and l may be
   %% different for each).
-  %% NOTE/FIXME: This assumes the crossover point is the same for all
-  %% variables. If it is not the case, change '1' to be the number
-  %% of variables and remove upper and lower multiplication by
-  %% ones(size(a)) (see NOTE in combineWithMask).
+  %% This is _not_ handled (btw).
   %% TODO: Explain!
   %% NOTE: Btw, if p == 0.5, the mask could just be a random integer
   %% between 0 and (2^l - 1).
   %% But this rarely ever happens, so...
   dim = size(a);
-  mask_as_array = rand(dim(1), l, 1) <= p;
-  mask = UTILS.arrayToDec(mask_as_array);
+  N = dim(1);
+  var_count = dim(2);
+  
+  mask_as_array = rand(N, l, var_count) <= p;
+  mask = reshape(UTILS.arrayToDec(mask_as_array), [], var_count);
   
   result = combineWithMask(a, b, mask, l);
 end
