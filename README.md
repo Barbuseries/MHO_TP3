@@ -20,10 +20,10 @@
 	  - sigma truncation                                 (both)
 	  - ranking methods                                  (both)
 	  - 2 methods checking solutions feasibility         (real)
+	  - tournament selection                             (both)
 
 # TODO 
 
-	  - tournament selection                             (both)
 	  - steady state algorithm strategy                  (???)
 	  - stop criteria                                    (???) - PARTIALLY
 	  - another variation operator                       (???)
