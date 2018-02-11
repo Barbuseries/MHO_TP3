@@ -102,6 +102,22 @@ end
 %% the result is bogus! I _may_ have a fix (offseting t(a) and t(b),
 %% but it does not work in Octave...)
 function h = uniform(p, t)
+  %% UNIFORM Return a function that produces UNIFORM_(P, A, B, L) when
+  %% given A, B and L.
+  %% P Can either be:
+  %% - A number in [0, 1] (T must not be defined)
+  %%   If P == 0.5, this calls an optimized versio of UNIFORM_:
+  %%   UNIFORM_05_.
+  %% - A function handle that takes two parameters and produces a
+  %%   number in [0, 1].
+  %%   In that case, T must also be a function handle and, given an
+  %%   individual, must return the associated value that is then given
+  %%   to P.
+  %%   i.e, When given A, B and L, this produces
+  %%        UNIFORM_(P(T(A), T(B)), A, B, L).
+  %%
+  %% See also UNIFORM_, UNIFORM_05_.
+  
   global UTILS;
   
   if (UTILS.isMatlab)
@@ -110,7 +126,9 @@ function h = uniform(p, t)
   
   if (isnumeric(p))
 	if ((p < 0) || (p > 1))
-	  error('uniform: p in [0, 1]')
+	  error('uniform: P must be in [0, 1]');
+	elseif (p == 0.5)
+	  h = @uniform_05_;
 	else
 	  h = @(a, b, l) uniform_(p, a, b, l);
 	end
@@ -118,13 +136,33 @@ function h = uniform(p, t)
 	%% TODO: If t is not defined, set to identity.
 	h = @(a, b, l) uniform_(p(t(a), t(b)), a, b, l);
   else
-	error('uniform: either p must be a real in [0, 1] or p and t must be two function handles')
+	error('uniform: either P must be a real in [0, 1] or P and T have to be two function handles');
   end
+end
+
+function result = uniform_05_(a, b, l)
+  %% NOTE: According to the slides, it should be left to the user to
+  %% specify weither or not variables are combined (and l may be
+  %% different for each).
+  %% This is _not_ handled (btw).
+  %% NOTE: Btw, if p == 0.5, the mask could just be a random integer
+  %% between 0 and (2^l - 1).
+  %% But this rarely ever happens, so...
+  dim = size(a);
+  N = dim(1);
+  var_count = dim(2);
+  max_val = 2^l - 1;
+  
+  mask = randi(max_val, N, var_count);
+  result = combineWithMask(a, b, mask, l);
 end
 
 function result = uniform_(p, a, b, l)
   global UTILS;
-  %% TODO: Check p in [0, 1]?
+
+  if (any(p < 0 | p > 1))
+	error('uniform: P must be in [0, 1]');
+  end
 
   %% NOTE: According to the slides, it should be left to the user to
   %% specify weither or not variables are combined (and l may be
