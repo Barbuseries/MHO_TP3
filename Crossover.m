@@ -176,10 +176,10 @@ function result = uniform_05_(a, b, l)
   var_count = dim(2);
   max_val = 2^l - 1;
 
-  %% When P == 0.5, every allele as a 50% chance to crossover. This
+  %% When P == 0.5, every allele has a 50% chance to crossover. This
   %% means that, for a given length l, each crossover pattern (a mask)
   %% has a (1/2)^l chance of happening.
-  %% Which is the same has the chance of obtaining a given random
+  %% Which is the same as the chance of obtaining a given random
   %% integer in [0, 2^l - 1].
   %% So we can represent just the mask as a random number in this same
   %% interval.
