@@ -1,10 +1,10 @@
 function Selection
   global SELECTION;
   
-  SELECTION.wheel = @wheel;
-  SELECTION.stochasticUniversalSampling = @stochasticUniversalSampling;
-  SELECTION.tournament = @tournament;
-  SELECTION.unbiasedTournament = @unbiasedTournament;
+  SELECTION.wheel = @wheel; %% None
+  SELECTION.stochasticUniversalSampling = @stochasticUniversalSampling; %% None
+  SELECTION.tournament = @tournament; %% K in [1, N]
+  SELECTION.unbiasedTournament = @unbiasedTournament; %% K in [1, N]
 end
 
 function result = wheel(probabilities)

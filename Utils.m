@@ -62,7 +62,8 @@ end
 
 function result = arrayToDec(a)
   dim = size(a);
-  result = sum(a .* 2 .^ ((dim(2)-1):-1:0), 2);
+  l = dim(2);
+  result = sum(a .* 2 .^ ((l-1):-1:0), 2);
 end
 
 %% TODO: Specify length
@@ -97,7 +98,7 @@ end
 %%         - the matlab version was found first
 %%         - it is 10% faster than the octave one (on matlab)
 %%         - the octave version is 2 times faster on octave (than the
-%%         - matlab version on octave)
+%%           matlab version on octave)
 function result = select_matlab(probabilities, values)
   cumulative_sum = cumsum(probabilities);
   

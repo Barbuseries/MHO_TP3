@@ -1,12 +1,6 @@
 %% TODO?: As we already have to type Problem.<problem>(), maybe we
 %% could change their definition to call optimize directly (instead of
 %% Problem.<problem>().optimize(config) => Problem.<problem>(config)).
-
-%% IMPORTANT/TODO: Use temp = num2cell(decode(population)',
-%% var_count); fn(temp[:}]) to eval a function which takes var_count
-%% parameters.
-%% This removes the need to make the fitness_fn hugly, AND allows us
-%% to store objective_fn somewhere.
 function Problem
   global PROBLEM;
   

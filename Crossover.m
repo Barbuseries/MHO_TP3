@@ -2,16 +2,16 @@ function Crossover
   global CROSSOVER;
 
   %% Binary
-  CROSSOVER.singlePoint = @singlePoint;
+  CROSSOVER.singlePoint = @singlePoint; %% None
   CROSSOVER.multiPoint = @multiPoint; %% N in [1, L - 1]
   CROSSOVER.uniform = @uniform; %% P in [0, 1];  or P and T as function handles
 
 
   %% Arithmetic
-  CROSSOVER.whole_arithmetic = @(a, b, cx) arithmetic_crossover_(1, a, b, cx);
-  CROSSOVER.local_arithmetic = @local_arithmetic;
-  CROSSOVER.blend = @blend;
-  CROSSOVER.simulatedBinary = @simulatedBinary;
+  CROSSOVER.wholeArithmetic = @wholeArithmetic; %% None
+  CROSSOVER.localArithmetic = @localArithmetic; %% None
+  CROSSOVER.blend = @blend; %% ALPHA (default 0.5) %% TODO: See if there is a max value
+  CROSSOVER.simulatedBinary = @simulatedBinary; %% N > 0 %% TODO: Check interval
 end
 
 %% Binary crossovers
@@ -141,23 +141,41 @@ function h = uniform(p, t)
 end
 
 function result = uniform_05_(a, b, l)
+  %% UNIFORM_05_ This is an optimized version of UNIFORM_(P, A, B, L),
+  %% when P == 0.5.
+  %%
+  %% See also UNIFORM_.
+  
   %% NOTE: According to the slides, it should be left to the user to
   %% specify weither or not variables are combined (and l may be
   %% different for each).
   %% This is _not_ handled (btw).
-  %% NOTE: Btw, if p == 0.5, the mask could just be a random integer
-  %% between 0 and (2^l - 1).
-  %% But this rarely ever happens, so...
   dim = size(a);
   N = dim(1);
   var_count = dim(2);
   max_val = 2^l - 1;
-  
+
+  %% When P == 0.5, every allele as a 50% chance to crossover. This
+  %% means that, for a given length l, each crossover pattern (a mask)
+  %% has a (1/2)^l chance of happening.
+  %% Which is the same has the chance of obtaining a given random
+  %% integer in [0, 2^l - 1].
+  %% So we can represent just the mask as a random number in this same
+  %% interval.
+  %% NOTE(@perf): This does not depend on l!
   mask = randi(max_val, N, var_count);
   result = combineWithMask(a, b, mask, l);
 end
 
 function result = uniform_(p, a, b, l)
+  %% UNIFORM Create two children from A and B.
+  %% The first child has a possibility of P that a given allele comes
+  %% from A, and (1 - P) that it comes from B.
+  %% Those probabilities are inverted for the second child.
+  %%   CHILDREN = UNIFORM_(P, A, B, L)
+  %%
+  %% See also UNIFORM, UNIFORM_05_.
+  
   global UTILS;
 
   if (any(p < 0 | p > 1))
@@ -168,14 +186,22 @@ function result = uniform_(p, a, b, l)
   %% specify weither or not variables are combined (and l may be
   %% different for each).
   %% This is _not_ handled (btw).
-  %% TODO: Explain!
-  %% NOTE: Btw, if p == 0.5, the mask could just be a random integer
-  %% between 0 and (2^l - 1).
-  %% But this rarely ever happens, so...
   dim = size(a);
   N = dim(1);
   var_count = dim(2);
-  
+
+  %% For each allele (and for each variable), we generate a random
+  %% number in [0, 1] and compare it to p.
+  %% This gives us an array of 1s and 0s that we then convert to an
+  %% integer (the mask).
+  %% For the first child, 1s correspond to the alleles that come from
+  %% A and 0s to the ones that come from B.
+  %% This is inverted for the second child.
+  %%
+  %% 'reshape' is used to handle different masks for each variable (we
+  %% have an array with Nxlxvar_count dimensions, with N the number of
+  %% pairs, l the chromosome length and var_count the number of
+  %% variables).
   mask_as_array = rand(N, l, var_count) <= p;
   mask = reshape(UTILS.arrayToDec(mask_as_array), [], var_count);
   
@@ -205,22 +231,52 @@ function result = combineWithMask(a, b, mask, l)
 end
 
 %% Arithmetic crossovers
-function result = local_arithmetic(a, b, ~)
+function result = wholeArithmetic(a, b, ~)
+  %% WHOLEARITHMETIC Create two children from A and B using a linear
+  %% interpolation (1 - t) * p1 + p2 * t with the same t (a random
+  %% value in [0, 1]) for each variable (with p1 being either A or B,
+  %% and p2 being the other).
+  %%
+  %% See also LOCALARITHMETIC, ARITHMETICCROSSOVER_.
+  
+  result = arithmeticCrossover_(1, a, b);
+end
+
+function result = localArithmetic(a, b, ~)
+  %% LOCALARITHMETIC Create two children from A and B using a linear
+  %% interpolation (1 - t) * p1 + p2 * t with a different t (a random
+  %% value in [0, 1]), for each variable (with p1 being either A or B,
+  %% and p2 being the other).
+  %%
+  %% See also WHOLEARITHMETIC, ARITHMETICCROSSOVER_.
+  
   dim = size(a);
   var_count = dim(2);
 
-  result = arithmetic_crossover_(var_count, a, b);
+  result = arithmeticCrossover_(var_count, a, b);
 end
 
-function result = arithmetic_crossover_(n, a, b, ~)
+function result = arithmeticCrossover_(n, a, b)
+  %% ARITHMETICCROSSOVER Create two children from A and B using a
+  %% linear interpolation (1 - t) * p1 + p2 * t with either the same
+  %% or a different t (a random value in [0, 1]), for each variable
+  %% (with p1 being either A or B, and p2 being the other).
+  %%
+  %% See also LOCALARITHMETIC, ARITHMETICCROSSOVER_.
+
+  %% NOTE/IMPORTANT: n must either be 1 or equal to var_count. Because
+  %% this function is not exported, this check is never done, but keep
+  %% that in mind ;)
   dim = size(a);
   alpha = rand(dim(1), n);
   beta = 1 - alpha;
 
+  %% Linear interpolation
   result = [(a .* alpha) + (beta .* b), (b .* alpha) + (beta .* a)];
 end
 
 function h = blend(alpha)
+  %% TODO: Doc...
   if ~exist('alpha', 'var')
 	alpha = 0.5;
   end
@@ -229,6 +285,7 @@ function h = blend(alpha)
 end
 
 function result = blend_(alpha, a, b, context)
+  %% TODO: Doc...
   constraints = context.constraints;
   
   dim = size(a);
@@ -238,6 +295,7 @@ function result = blend_(alpha, a, b, context)
   max_vals = max(a, b);
   min_vals = min(a, b);
 
+  %% TODO: Explain!
   delta = alpha * (max_vals - min_vals);
   lb = min_vals - delta;
   ub= max_vals + delta;
@@ -251,24 +309,27 @@ function result = blend_(alpha, a, b, context)
 end
 
 function result = blendChild(lowest, biggest, lb, ub, N, var_count, clamp_fn)
+  %% TODO: Doc...
   result = (ub - lb) .* rand(N, var_count) + lb;
   result = clamp_fn(result, lowest, biggest);
 end
 
 function h = simulatedBinary(n)
+  %% TODO: Doc...
   h = @(a, b, cx) simulatedBinary_(n, a, b, cx);
 end
 
 function result = simulatedBinary_(n, a, b, ~)
+  %% TODO: Doc...
   dim = size(a);
   N = dim(1);
   var_count = dim(2);
-  
+
+  %% TODO: Explain!
   u = rand(N, var_count);
 
   below = u <= 0.5;
   
-  %% TODO: Check those values are correct. (I think they are...)
   below_sharp_s = (2 * u) .^ (1 / (n + 1)) .* below;
   above_sharp_s = (2 * (1 - u)) .^ (- (1 / n) + 1) .* ~below;
   

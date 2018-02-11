@@ -1,10 +1,10 @@
 function FitnessChange
   global FITNESS_CHANGE;
 
-  FITNESS_CHANGE.none = @(f) f;
-  FITNESS_CHANGE.offset = @offset;
-  FITNESS_CHANGE.linearScale = @linearScale;
-  FITNESS_CHANGE.sigmaTruncation = @sigmaTruncation;
+  FITNESS_CHANGE.none = @(f) f; %% None
+  FITNESS_CHANGE.offset = @offset; %% None
+  FITNESS_CHANGE.linearScale = @linearScale; %% None
+  FITNESS_CHANGE.sigmaTruncation = @sigmaTruncation; %% C in [1, 5]
 end
 
 %% NOTE: This is not a standard function. I just used this before
@@ -13,8 +13,8 @@ end
 function result = offset(fitness)
   min_fitness = min(fitness);
   
-  %% Remove negative fitness and a little more, so their relative
-  %% fitness is not 0 (not selectable).
+  %% Remove negative fitness and a little more, so their fitness is
+  %% not 0 (not selectable).
   if (min_fitness < 0)
 	result = fitness - 2 * min(fitness);
   else

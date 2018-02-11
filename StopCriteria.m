@@ -2,16 +2,16 @@ function StopCriteria
   global STOP_CRITERIA;
   
   %% Time
-  STOP_CRITERIA.time = @(f) 0;
+  STOP_CRITERIA.time = @(f) 0; %% None
   
-  STOP_CRITERIA.threshold = @fitnessThreshold;
-  STOP_CRITERIA.variance = @fitnessVariance;
+  STOP_CRITERIA.threshold = @fitnessThreshold; %% THRESHOLD (upper) limit
+  STOP_CRITERIA.variance = @fitnessVariance; %% VARIANCE (lower) limit
 
   %% TODO: Fitness value change rate
 end
 
-function h = fitnessThreshold(t)
-  h = @(f) fitnessThresholdInner_(t, f);
+function h = fitnessThreshold(threshold)
+  h = @(f) fitnessThresholdInner_(threshold, f);
 end
 
 function result = fitnessThresholdInner_(threshold, fitness)

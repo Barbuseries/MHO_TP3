@@ -2,15 +2,15 @@ function Mutation
   global MUTATION;
 
   %% Binary
-  MUTATION.bitFlip = @bitFlip;
+  MUTATION.bitFlip = @bitFlip; %% None
 
   %% Arithmetic
-  MUTATION.uniform = @uniform;
-  MUTATION.boundary = @boundary;
+  MUTATION.uniform = @uniform; %% None
+  MUTATION.boundary = @boundary; %% None
   MUTATION.normal = @normal;
   MUTATION.normalN = @normalN;
-  MUTATION.polynomial = @polynomial;
-  MUTATION.nonUniform = @nonUniform;
+  MUTATION.polynomial = @polynomial; %% N > 0 %% TODO: Check interval
+  MUTATION.nonUniform = @nonUniform; %% B %% TODO: Check interval
 end
 
 %% Binary
@@ -35,7 +35,6 @@ function result = uniform(children, mutations, context)
   N = dim(1);
   
   %% TODO: Explain!
-  %% TODO(@perf): This can probably be improved (I hope).
   result = children .* (mutations == 0) + mutations .* UTILS.randomIn(context.constraints, N);
 end
 
@@ -47,7 +46,6 @@ function result = boundary(children, mutations, context)
   N = dim(1);
   var_count = dim(2);
   
-  %% TODO(@perf): This can probably be improved (I hope).
   %% TODO: Explain!
   mutations = mutations .* rand(N, var_count, 1); 
   
@@ -70,7 +68,6 @@ function result = normal(children, mutations, context)
 end
 
 %% TODO: Should the the sigma be random or set by the user?
-%% TODO: This was not run!
 function result = normalN(children, mutations, context)
   dim = size(children);
   

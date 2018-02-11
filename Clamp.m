@@ -1,8 +1,8 @@
 function Clamp
   global CLAMP;
 
-  CLAMP.default = @defaultClamp;
-  CLAMP.fancy = @fancyClamp;
+  CLAMP.default = @defaultClamp; %% None
+  CLAMP.fancy = @fancyClamp; %% None
 end
 
 function result = defaultClamp(val, lowest, biggest)
