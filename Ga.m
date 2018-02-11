@@ -311,7 +311,24 @@ function [result, history] = minimize(obj_fn, fit_fn, constraints, config)
 end
 
 function result = defaultConfig
-  %% Preconfigured genetic algorithm config.
+	 %DEFAULTCONFIG Preconfigured genetic algorithm config.
+	 %
+	 % Fields
+	 %  N                  Population count
+	 %  G_max              Max iteration count
+	 %  l                  Chromosome length, in [1, 53]
+	 %  Pc                 Crossover probability
+	 %  Pm                 Mutation probability
+	 %  ranking_fn         Ranking function
+	 %  fitness_change_fn  Fitness change function
+	 %  selection_fn       Selection function
+	 %  crossover_fn       Crossover function
+	 %  mutation_fn        Mutation function
+	 %  stop_criteria_fn   Stop criteria function
+	 %  clamp_fn           Clamp function, not used with binary values
+	 %  
+	 % See also Ranking, FitnessChange, Selection, Crossover, Mutation,
+	 % StopCriteria, Clamp.
   
   global RANKING;
   global FITNESS_CHANGE;
@@ -321,23 +338,22 @@ function result = defaultConfig
   global STOP_CRITERIA;
   global CLAMP;
   
-  result.N = 100; %% Population count
-  result.G_max = 100; %% Max iteration count
+  result.N = 100;
+  result.G_max = 100;
   
   %% NOTE: 'binary' is just an integer representation (to get to the
   % actual value => v = (i / maxI) * (c(1) - c(0)) + c(0), with c the
   % constaints for this variable)
-  result.l = 12; %% Chromosome length (IMPORTANT: must be in [1, 53])
+  result.l = 12;
   
-  result.Pc = 0.5; %% Crossover probability
-  result.Pm = 0.1; %% Mutation probability
+  result.Pc = 0.5;
+  result.Pm = 0.1;
 
-  result.ranking_fn = RANKING.none; %% Ranking function (See Ranking.m)
-  result.fitness_change_fn = FITNESS_CHANGE.linearScale; %% Fitness change function (See Fitness_Change.m)
-  result.selection_fn = SELECTION.wheel; %% Selection function (See Selection.m)
-  result.crossover_fn = CROSSOVER.singlePoint; %% Crossover function (See Crossover.m)
-  result.mutation_fn = MUTATION.bitFlip; %% Mutation function (See Mutation.m)
-  result.stop_criteria_fn = STOP_CRITERIA.time; %% Stop criteria function (See Stop_Criteria.m)
-  %% IMPORTANT: Not used with binary values (no clamping is necessary).
-  result.clamp_fn = CLAMP.default; %% Clamp function (See Clamp.m)
+  result.ranking_fn = RANKING.none;
+  result.fitness_change_fn = FITNESS_CHANGE.linearScale;
+  result.selection_fn = SELECTION.wheel;
+  result.crossover_fn = CROSSOVER.singlePoint;
+  result.mutation_fn = MUTATION.bitFlip;
+  result.stop_criteria_fn = STOP_CRITERIA.time;
+  result.clamp_fn = CLAMP.default;
 end

@@ -1,13 +1,24 @@
 function Selection
+	%SELECTION All selection functions.
+	%
+	% wheel
+	% stochasticUniversalSampling
+	% tournament(K), K in [1, N]
+	% unbiasedTournament(K), K in [1, N]
+	%
+	% See also SELECTION>WHEEL, SELECTION>STOCHASTICUNIVERSALSAMPLING,
+	% SELECTION>TOURNAMENT, SELECTION>UNBIASEDTOURNAMENT
+  
   global SELECTION;
   
-  SELECTION.wheel = @wheel; %% None
-  SELECTION.stochasticUniversalSampling = @stochasticUniversalSampling; %% None
-  SELECTION.tournament = @tournament; %% K in [1, N]
-  SELECTION.unbiasedTournament = @unbiasedTournament; %% K in [1, N]
+  SELECTION.wheel = @wheel;
+  SELECTION.stochasticUniversalSampling = @stochasticUniversalSampling;
+  SELECTION.tournament = @tournament;
+  SELECTION.unbiasedTournament = @unbiasedTournament;
 end
 
 function result = wheel(probabilities)
+  %% TODO: Doc...
   global UTILS;
 
   %% We need to select as many individuals as there already are.
@@ -17,6 +28,8 @@ function result = wheel(probabilities)
 end
 
 function result = stochasticUniversalSampling(probabilities)
+  %% TODO: Doc...
+  
   global UTILS;
   
   N = length(probabilities);
@@ -30,6 +43,8 @@ function result = stochasticUniversalSampling(probabilities)
 end
 
 function h = tournament(k)
+  %% TODO: Doc...
+  
   if (k < 1)
 	error('k must be in [1, N]');
   end
@@ -38,6 +53,8 @@ function h = tournament(k)
 end
 
 function result = tournamentInner_(k, probabilities)
+  %% TODO: Doc...
+  
   N = length(probabilities);
 
   if (k > N)
@@ -51,10 +68,14 @@ function result = tournamentInner_(k, probabilities)
 end
 
 function h = unbiasedTournament(k)
+  %% TODO: Doc...
+  
   h = @(p) unbiasedTournamentInner_(k, p);
 end
 
 function result = unbiasedTournamentInner_(k, probabilities)
+  %% TODO: Doc...
+  
   N = length(probabilities);
 
   if (k > N)
@@ -74,6 +95,8 @@ function result = unbiasedTournamentInner_(k, probabilities)
 end
 
 function result = tournamentSelect_(random_indices, probabilities)
+  %% TODO: Doc...
+  
   N = length(probabilities);
   
   %% TODO: Explain!
@@ -83,5 +106,7 @@ function result = tournamentSelect_(random_indices, probabilities)
 end
 
 function result = relatviveToExactIndex_(ind, N)
+  %% TODO: Doc...
+  
   result = (ind - 1) * N + (1:N)';
 end

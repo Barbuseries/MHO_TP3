@@ -1,20 +1,39 @@
 function Mutation
+					  %MUTATION All mutation functions.
+					  %
+					  % Binary mutations
+					  %  bitFlip
+					  % 
+					  % Arithmetic mutations
+					  %  uniform
+					  %  boundary
+					  %  normal(???)
+					  %  normalN(???)
+					  %  polynomial(N), N > 0  %% TODO: Check interval
+					  %  nonUniform(B) %% TODO: Check interval
+					  %  
+					  % See also MUTATION>BITFLIP, MUTATION>UNIFORM,
+					  % MUTATION>BOUNDARY, MUTATION>NORMAL,
+					  % MUTATION>NORMALN, MUTATION>POLYNOMIAL,
+					  % MUTATION>NONUNIFORM
   global MUTATION;
 
   %% Binary
-  MUTATION.bitFlip = @bitFlip; %% None
+  MUTATION.bitFlip = @bitFlip;
 
   %% Arithmetic
-  MUTATION.uniform = @uniform; %% None
-  MUTATION.boundary = @boundary; %% None
+  MUTATION.uniform = @uniform;
+  MUTATION.boundary = @boundary;
   MUTATION.normal = @normal;
   MUTATION.normalN = @normalN;
-  MUTATION.polynomial = @polynomial; %% N > 0 %% TODO: Check interval
-  MUTATION.nonUniform = @nonUniform; %% B %% TODO: Check interval
+  MUTATION.polynomial = @polynomial;
+  MUTATION.nonUniform = @nonUniform;
 end
 
 %% Binary
 function result = bitFlip(children, mutations, ~)
+  %% TODO: Doc...
+  
   global UTILS;
   
   dim = size(children);
@@ -28,6 +47,8 @@ end
 
 %% Arithmetic
 function result = uniform(children, mutations, context)
+  %% TODO: Doc...
+  
   global UTILS;
     
   dim = size(children);
@@ -39,6 +60,8 @@ function result = uniform(children, mutations, context)
 end
 
 function result = boundary(children, mutations, context)
+  %% TODO: Doc...
+  
   constraints = context.constraints;
   
   dim = size(children);
@@ -58,6 +81,8 @@ end
 
 %% TODO: Should the the sigma be random or set by the user?
 function result = normal(children, mutations, context)
+  %% TODO: Doc...
+  
   dim = size(children);
   
   N = dim(1);
@@ -69,6 +94,8 @@ end
 
 %% TODO: Should the the sigma be random or set by the user?
 function result = normalN(children, mutations, context)
+  %% TODO: Doc...
+  
   dim = size(children);
   
   N = dim(1);
@@ -81,6 +108,8 @@ end
 
 %% TODO: Explain!
 function result = normalAnyInner_(sigma, children, context)
+  %% TODO: Doc...
+  
   constraints = context.constraints;
   clamp_fn = context.clamp_fn;
   
@@ -96,11 +125,15 @@ function result = normalAnyInner_(sigma, children, context)
 end
 
 function h = polynomial(n)
+  %% TODO: Doc...
+  
   h = @(c, m, cx) polynomialInner_(n, c, m, cx);
 end
 
 
 function result = polynomialInner_(n, children, mutations, context)
+  %% TODO: Doc...
+  
   constraints = context.constraints;
   clamp_fn = context.clamp_fn;
   
@@ -129,10 +162,14 @@ function result = polynomialInner_(n, children, mutations, context)
 end
 
 function h = nonUniform(b)
+  %% TODO: Doc...
+  
   h = @(c, m, cx) nonUniformInner_(b, c, m, cx);
 end
 
 function result = nonUniformInner_(b, children, mutations, context)
+  %% TODO: Doc...
+  
   constraints = context.constraints;
   clamp_fn = context.clamp_fn;
   

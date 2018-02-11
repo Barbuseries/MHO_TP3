@@ -1,27 +1,47 @@
 function Crossover
+	   %CROSSOVER All crossover functions.
+	   %
+	   % Binary crossovers
+	   %  singlePoint
+	   %  multiPoint(N), N in [1, L - 1]
+	   %  uniform(P, T), P in [0, 1];  or P and T as function handles
+	   % 
+	   % Arithmetic crossovers
+	   %  wholeArithmetic
+	   %  localArithmetic
+	   %  blend(ALPHA = 0.5) %% TODO: See if there is a max value
+	   %  simulatedBinary(N), N > 0 %% TODO: Check interval
+	   %
+	   % See also CROSSOVER>SINGLEPOINT, CROSSOVER>MULTIPOINT,
+	   % CROSSOVER>UNIFORM, CROSSOVER>WHOLEARITHMETIC,
+	   % CROSSOVER>LOCALARITHMETIC, CROSSOVER>BLEND,
+	   % CROSSOVER>SIMULATEDBINARY
+  
   global CROSSOVER;
 
   %% Binary
-  CROSSOVER.singlePoint = @singlePoint; %% None
-  CROSSOVER.multiPoint = @multiPoint; %% N in [1, L - 1]
-  CROSSOVER.uniform = @uniform; %% P in [0, 1];  or P and T as function handles
+  CROSSOVER.singlePoint = @singlePoint;
+  CROSSOVER.multiPoint = @multiPoint;
+  CROSSOVER.uniform = @uniform;
 
 
   %% Arithmetic
-  CROSSOVER.wholeArithmetic = @wholeArithmetic; %% None
-  CROSSOVER.localArithmetic = @localArithmetic; %% None
-  CROSSOVER.blend = @blend; %% ALPHA (default 0.5) %% TODO: See if there is a max value
-  CROSSOVER.simulatedBinary = @simulatedBinary; %% N > 0 %% TODO: Check interval
+  CROSSOVER.wholeArithmetic = @wholeArithmetic;
+  CROSSOVER.localArithmetic = @localArithmetic;
+  CROSSOVER.blend = @blend;
+  CROSSOVER.simulatedBinary = @simulatedBinary;
 end
 
 %% Binary crossovers
 function result = singlePoint(a, b, l)
-  %% SINGLEPOINT Choose a random point in [1, L - 1] and split both A
-  %% and B into two parts, then swap and merge them to create two
-  %% children.
-  %% A different point is choosen for each variable in a and b.
-  %%   CHILDREN = SINGLEPOINT(A, B, L) Create two children from A and
-  %%   B, with a chromosome length of L.
+	%SINGLEPOINT Choose a random point in [1, L - 1] and split both A
+	% and B into two parts, then swap and merge them to create two
+	% children.
+	% A different point is choosen for each variable in a and b.
+	%   CHILDREN = SINGLEPOINT(A, B, L) Create two children from A and
+	%   B, with a chromosome length of L.
+	%
+	% See also CROSSOVER>MULTIPOINT, CROSSOVER>MULTIPOINT_.
   
   dim = size(a);
   N = dim(1);
@@ -35,12 +55,12 @@ function result = singlePoint(a, b, l)
 end
 
 function h = multiPoint(n)
-  %% MULTIPOINT Return a function that produces MULTIPOINT_(N, A, B,
-  %% L) when given A, B and L.
-  %% If N is 1, it returns SINGLEPOINT.
-  %%   H = MUTLIPOINT(N)
-  %%
-  %% See also SINGLEPOINT, MULTIPOINT_.
+	 %MULTIPOINT Return a function that produces MULTIPOINT_(N, A, B,
+	 % L) when given A, B and L.
+	 % If N is 1, it returns SINGLEPOINT.
+	 %   H = MULTIPOINT(N)
+	 %
+	 % See also CROSSOVER>SINGLEPOINT, CROSSOVER>MULTIPOINT_.
   
   if (n == 1)
 	h = singlePoint;
@@ -51,14 +71,14 @@ end
 
 %% TODO?: multiPoint crossover can be implemented for real values.
 function result = multiPoint_(n, a, b, l)
-  %% MULTIPOINT_ Choose N random points in [1, L - 1] and split both A
-  %% and B into N+1 parts, then swap and merge them to create two
-  %% children.
-  %% N different points are choosen for each variable in A and B.
-  %%   CHILDREN = MULTIPOINT_(N, A, B, L) Create two children from A
-  %% and B, with a chromosome length of L.
-  %%
-  %% See also SINGLEPOINT.
+   %MULTIPOINT_ Choose N random points in [1, L - 1] and split both A
+   % and B into N+1 parts, then swap and merge them to create two
+   % children.
+   % N different points are choosen for each variable in A and B.
+   %   CHILDREN = MULTIPOINT_(N, A, B, L) Create two children from A
+   % and B, with a chromosome length of L.
+   %
+   % See also CROSSOVER>SINGLEPOINT, CROSSOVER>MULTIPOINT.
   
   global UTILS;
   
@@ -101,22 +121,23 @@ end
 %% NOTE/FIXME: If t(a) and t(b) is negative and p is a relative sum,
 %% the result is bogus! I _may_ have a fix (offseting t(a) and t(b),
 %% but it does not work in Octave...)
+
 function h = uniform(p, t)
-  %% UNIFORM Return a function that produces UNIFORM_(P, A, B, L) when
-  %% given A, B and L.
-  %% P Can either be:
-  %% - A number in [0, 1] (T must not be defined)
-  %%   If P == 0.5, this calls an optimized versio of UNIFORM_:
-  %%   UNIFORM_05_.
-  %% - A function handle that takes two parameters and produces a
-  %%   number in [0, 1].
-  %%   In that case, T must also be a function handle and, given an
-  %%   individual, must return the associated value that is then given
-  %%   to P.
-  %%   i.e, When given A, B and L, this produces
-  %%        UNIFORM_(P(T(A), T(B)), A, B, L).
-  %%
-  %% See also UNIFORM_, UNIFORM_05_.
+   %UNIFORM Return a function that produces UNIFORM_(P, A, B, L) when
+   % given A, B and L.
+   % P Can either be:
+   % - A number in [0, 1] (T must not be defined)
+   %   If P == 0.5, this calls an optimized version of UNIFORM_:
+   %   UNIFORM_05_.
+   % - A function handle that takes two parameters and produces a
+   %   number in [0, 1].
+   %   In that case, T must also be a function handle and, given an
+   %   individual, must return the associated value that is then given
+   %   to P.
+   %   i.e, When given A, B and L, this produces
+   %        UNIFORM_(P(T(A), T(B)), A, B, L).
+   %
+   % See also CROSSOVER>UNIFORM_, CROSSOVER>UNIFORM_05_.
   
   global UTILS;
   
@@ -141,10 +162,10 @@ function h = uniform(p, t)
 end
 
 function result = uniform_05_(a, b, l)
-  %% UNIFORM_05_ This is an optimized version of UNIFORM_(P, A, B, L),
-  %% when P == 0.5.
-  %%
-  %% See also UNIFORM_.
+   %UNIFORM_05_ This is an optimized version of UNIFORM_(P, A, B, L),
+   % when P == 0.5.
+   %
+   % See also CROSSOVER>UNIFORM, CROSSOVER>UNIFORM_.
   
   %% NOTE: According to the slides, it should be left to the user to
   %% specify weither or not variables are combined (and l may be
@@ -168,13 +189,13 @@ function result = uniform_05_(a, b, l)
 end
 
 function result = uniform_(p, a, b, l)
-  %% UNIFORM Create two children from A and B.
-  %% The first child has a possibility of P that a given allele comes
-  %% from A, and (1 - P) that it comes from B.
-  %% Those probabilities are inverted for the second child.
-  %%   CHILDREN = UNIFORM_(P, A, B, L)
-  %%
-  %% See also UNIFORM, UNIFORM_05_.
+	%UNIFORM_ Create two children from A and B.
+	% The first child has a possibility of P that a given allele comes
+	% from A, and (1 - P) that it comes from B.
+	% Those probabilities are inverted for the second child.
+	%   CHILDREN = UNIFORM_(P, A, B, L)
+	%
+	% See also CROSSOVER>UNIFORM, CROSSOVER>UNIFORM_05_.
   
   global UTILS;
 
@@ -209,19 +230,19 @@ function result = uniform_(p, a, b, l)
 end
 
 function result = toFlag(point)
-  %% TOFLAG Convert POINT into a decimal flag: everything before that
-  %% point (right-wise) is 1, and everything after is 0.
-  %% e,g: point = 3 => 0..00111
+	%TOFLAG Convert POINT into a decimal flag: everything before that
+	% point (right-wise) is 1, and everything after is 0.
+	% e,g: point = 3 => 0..00111
   
   result = (2 .^ point) - 1;
 end
 
 function result = combineWithMask(a, b, mask, l)
-  %% COMBINEWITHMASK Create two children based on MASK (an integer
-  %% between 0 and 2^L -1).
-  %% For the first child, 1s indicate which parts of parent A are
-  %% kept. Same goes for 0s and B.
-  %% 1s and 0s are inverted for the second child.
+	   %COMBINEWITHMASK Create two children based on MASK (an integer
+	   % between 0 and 2^L -1).
+	   % For the first child, 1s indicate which parts of parent A are
+	   % kept. Same goes for 0s and B.
+	   % 1s and 0s are inverted for the second child.
   
   max_val = 2^l - 1;
   inv_mask = bitxor(mask, max_val);
@@ -232,23 +253,23 @@ end
 
 %% Arithmetic crossovers
 function result = wholeArithmetic(a, b, ~)
-  %% WHOLEARITHMETIC Create two children from A and B using a linear
-  %% interpolation (1 - t) * p1 + p2 * t with the same t (a random
-  %% value in [0, 1]) for each variable (with p1 being either A or B,
-  %% and p2 being the other).
-  %%
-  %% See also LOCALARITHMETIC, ARITHMETICCROSSOVER_.
+	%WHOLEARITHMETIC Create two children from A and B using a linear
+	% interpolation (1 - t) * p1 + p2 * t with the same t (a random
+	% value in [0, 1]) for each variable (with p1 being either A or B,
+	% and p2 being the other).
+	%
+	% See also CROSSOVER>LOCALARITHMETIC, CROSSOVER>ARITHMETICCROSSOVER_.
   
   result = arithmeticCrossover_(1, a, b);
 end
 
 function result = localArithmetic(a, b, ~)
-  %% LOCALARITHMETIC Create two children from A and B using a linear
-  %% interpolation (1 - t) * p1 + p2 * t with a different t (a random
-  %% value in [0, 1]), for each variable (with p1 being either A or B,
-  %% and p2 being the other).
-  %%
-  %% See also WHOLEARITHMETIC, ARITHMETICCROSSOVER_.
+   %LOCALARITHMETIC Create two children from A and B using a linear
+   % interpolation (1 - t) * p1 + p2 * t with a different t (a random
+   % value in [0, 1]), for each variable (with p1 being either A or B,
+   % and p2 being the other).
+   %
+   % See also CROSSOVER>WHOLEARITHMETIC, CROSSOVER>ARITHMETICCROSSOVER_.
   
   dim = size(a);
   var_count = dim(2);
@@ -257,12 +278,12 @@ function result = localArithmetic(a, b, ~)
 end
 
 function result = arithmeticCrossover_(n, a, b)
-  %% ARITHMETICCROSSOVER Create two children from A and B using a
-  %% linear interpolation (1 - t) * p1 + p2 * t with either the same
-  %% or a different t (a random value in [0, 1]), for each variable
-  %% (with p1 being either A or B, and p2 being the other).
-  %%
-  %% See also LOCALARITHMETIC, ARITHMETICCROSSOVER_.
+	 %ARITHMETICCROSSOVER_ Create two children from A and B using a
+	 % linear interpolation (1 - t) * p1 + p2 * t with either the same
+	 % or a different t (a random value in [0, 1]), for each variable
+	 % (with p1 being either A or B, and p2 being the other).
+	 %
+	 % See also CROSSOVER>WHOLEARITHMETIC, CROSSOVER>LOCALARITHMETIC.
 
   %% NOTE/IMPORTANT: n must either be 1 or equal to var_count. Because
   %% this function is not exported, this check is never done, but keep

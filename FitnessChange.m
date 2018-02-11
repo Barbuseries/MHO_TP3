@@ -1,16 +1,27 @@
 function FitnessChange
+		   %FITNESSCHANGE All fitness change functions.
+		   %
+		   % none
+		   % offset
+		   % linearScale
+		   % sigmaTruncation(C), C in [1, 5]
+		   %
+		   % See also FITNESSCHANGE>OFFSET, FITNESSCHANGE>LINEARSCALE,
+		   % FITNESSCHANGE>SIGMATRUNCATION
   global FITNESS_CHANGE;
 
-  FITNESS_CHANGE.none = @(f) f; %% None
-  FITNESS_CHANGE.offset = @offset; %% None
-  FITNESS_CHANGE.linearScale = @linearScale; %% None
-  FITNESS_CHANGE.sigmaTruncation = @sigmaTruncation; %% C in [1, 5]
+  FITNESS_CHANGE.none = @(f) f;
+  FITNESS_CHANGE.offset = @offset;
+  FITNESS_CHANGE.linearScale = @linearScale;
+  FITNESS_CHANGE.sigmaTruncation = @sigmaTruncation;
 end
 
 %% NOTE: This is not a standard function. I just used this before
 %% implementing any other method so I could handle negative fitness
 %% values.
 function result = offset(fitness)
+  %% TODO: Doc...
+  
   min_fitness = min(fitness);
   
   %% Remove negative fitness and a little more, so their fitness is
@@ -23,6 +34,8 @@ function result = offset(fitness)
 end
 
 function result = linearScale(fitness)
+  %% TODO: Doc...
+  
   f_mean = mean(fitness);
   f_max = max(fitness);
   f_min = min(fitness);
@@ -34,6 +47,8 @@ function result = linearScale(fitness)
 end
 
 function h = sigmaTruncation(c)
+  %% TODO: Doc...
+  
   if (c < 1) || (c > 5)
 	error('c must be in [1, 5].');
   else
@@ -42,6 +57,8 @@ function h = sigmaTruncation(c)
 end
 
 function result = sigmaTruncationInner_(c, fitness)
+  %% TODO: Doc...
+  
   sigma = std(fitness);
 
   result = fitness - (mean(fitness) - c * sigma);

@@ -1,27 +1,43 @@
 function StopCriteria
+							%STOPCRITERIA All stop criteria functions.
+							%
+							% time
+							% threshold(T), T as upper limit
+							% variance(V), V as lower limit
+							%  
+							% See also STOPCRITERIA>THRESHOLD,
+							% STOPCRITERIA>VARIANCE
   global STOP_CRITERIA;
   
   %% Time
-  STOP_CRITERIA.time = @(f) 0; %% None
+  STOP_CRITERIA.time = @(f) 0;
   
-  STOP_CRITERIA.threshold = @fitnessThreshold; %% THRESHOLD (upper) limit
-  STOP_CRITERIA.variance = @fitnessVariance; %% VARIANCE (lower) limit
+  STOP_CRITERIA.threshold = @threshold;
+  STOP_CRITERIA.variance = @variance;
 
   %% TODO: Fitness value change rate
 end
 
-function h = fitnessThreshold(threshold)
-  h = @(f) fitnessThresholdInner_(threshold, f);
+function h = threshold(t)
+  %% TODO: Doc...
+  
+  h = @(f) thresholdInner_(t, f);
 end
 
-function result = fitnessThresholdInner_(threshold, fitness)
+function result = thresholdInner_(threshold, fitness)
+  %% TODO: Doc...
+  
   result = ~isempty(find(fitness >= threshold, 1));
 end
 
-function h = fitnessVariance(variance)
-  h = @(f) fitnessVarianceInner_(variance, f);
+function h = variance(v)
+  %% TODO: Doc...
+  
+  h = @(f) varianceInner_(v, f);
 end
 
-function result = fitnessVarianceInner_(variance, fitness)
+function result = varianceInner_(variance, fitness)
+  %% TODO: Doc...
+  
   result = (var(fitness) <= variance);
 end
