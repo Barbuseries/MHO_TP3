@@ -60,8 +60,6 @@ end
 
 %% TODO: Should the the sigma be random or set by the user?
 function result = normal(children, mutations, context)
-  constraints = context.constraints;
-  
   dim = size(children);
   
   N = dim(1);

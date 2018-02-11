@@ -33,9 +33,9 @@ function [fitness, real_values_pop] = evalFitnessAndPop(population, fn, decode_f
 end
 
 function result = crossover(mating_pool, crossover_fn, Pc, context)
-  %% Modify mating pool to have an array of [i, j], so we do not have
-  %% to introduce an explicit loop (usually slower) to compute the
-  %% crossover of each parent pair.
+  %% Modify mating pool to have an array of [i, j] (two individuals on
+  %% the same row), so we do not have to introduce an explicit loop
+  %% (usually slower) to compute the crossover of each parent pair.
   var_count = length(mating_pool(1, :));
   mating_pool = reshape(mating_pool', 2 * var_count, [])';
 
@@ -44,9 +44,9 @@ function result = crossover(mating_pool, crossover_fn, Pc, context)
 
   go_through_crossover = mating_pool(indices, :);
 
-  %% Pair separations
-  min_b = 1:var_count;
-  max_b = (var_count+1):(var_count * 2);
+  %% Pair separation
+  min_b = 1:var_count; %% The first half (first individual)
+  max_b = (var_count+1):(var_count * 2); %% The second half (second individual)
 
   %% NOTE/TODO?: Instead of separating the variables, we could
   %% concatenated them (shift each by l*i bits and directly apply the
@@ -58,7 +58,7 @@ function result = crossover(mating_pool, crossover_fn, Pc, context)
   %% var_count bits per variable. (var_count = 3 => 17 bits)
   %% (By handling them separately, we do not have _any_ limitation)
   unchanged = mating_pool;
-  unchanged(indices, :) = [];  %% Find which pair did _not_ crossover
+  unchanged(indices, :) = [];  %% Remove pairs which are going to crossover.
 
   go_through_crossover = crossover_fn(go_through_crossover(:, min_b), go_through_crossover(:, max_b), context);
 
@@ -115,9 +115,6 @@ function showHistory(problem, history, iterations)
 	best_x = best_individuals(:, 1);
     vb_x = very_best(1);
 
-	%% TODO: Show iteration order
-	%% TODO: Find my old gradient function and use it here.
-	%% TODO: Show population at each iteration
 	if (var_count == 1)
 	  x = UTILS.linspacea(problem.constraints, 1000);
 	  
@@ -177,21 +174,17 @@ function result = fitnessProbabilities(fitness, fitness_change_fn)
   result = fitness / sum(fitness);
 end
 
-%% Maximize fn whose parameters are defined inside the given
-%% constraints.
-%% fn must only take one parameter. This parameter contains as many
-%% columns as there are constraints. (If three constraints are given,
-%% fn receives a parameter with three columns)
-%%
-%% Return the best individual from the last iteration as well as an
-%% history which contains, for each iteration:
-%% - the population (real values)
-%% - its fitness
-%% - the best individual
-%% - its fitness
-%% and the best overall individual (very_best) along with its value,
-%% its fitness and its iteration.
 function [result, history] = maximize(objective_fn, fitness_fn, constraints, config)
+  %% Maximize fitness_fn whose parameters are defined inside the given
+  %% constraints. (objective_fn is only used to record the population's
+  %% value at each iteration)
+  %%
+  %% Return the best individual from the last iteration as well as an
+  %% history which contains, for each iteration: - the population (real
+  %% values) and its fitness - the best individual its fitness - the
+  %% best overall individual (very_best): its value, fitness and the
+  %% first iteration it appeared in.
+  
   global UTILS;
   global RANKING;
   global FITNESS_CHANGE;
@@ -215,7 +208,7 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
   crossover_fn = config.crossover_fn;
   mutation_fn = config.mutation_fn;
   stop_criteria_fn = config.stop_criteria_fn;
-  clamp_fn = config.clamp_fn; %% TODO: Indicate that it is not used with binary values.
+  clamp_fn = config.clamp_fn;
 
   use_ranking = ~isequal(ranking_fn, RANKING.none);
   use_fitness_change = ~isequal(fitness_change_fn, FITNESS_CHANGE.none);
@@ -266,7 +259,7 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
 	%% Recording
 	history.iterations(g) = createRecord(real_values_pop, fitness, objective_fn);
 
-	%% Selection
+	%% Selection (based on rank or derived from fitness)
 	probabilities = get_probabilities(fitness, probabilities_fn);
 	selection = selection_fn(probabilities);
 	mating_pool = population(UTILS.shuffle(selection), :);
@@ -276,10 +269,11 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
 
 	%% Mutation
 	%% TODO: This check can be done outside the loop.
+	%% Every allele that needs to mutate is 1 at the correponding index
 	if (l == -1)
-	  mutations = rand(N, var_count, 1) <= Pm;  %% Every allele that needs to mutate is 1 at the correponding index
+	  mutations = rand(N, var_count, 1) <= Pm;
 	else
-	  mutations = rand(N, l, var_count) <= Pm; %% Every allele that needs to mutate is 1 at the correponding index
+	  mutations = rand(N, l, var_count) <= Pm;
 	end
 
 	population = mutation_fn(children, mutations, context);
@@ -317,6 +311,8 @@ function [result, history] = minimize(obj_fn, fit_fn, constraints, config)
 end
 
 function result = defaultConfig
+  %% Preconfigured genetic algorithm config.
+  
   global RANKING;
   global FITNESS_CHANGE;
   global SELECTION;
@@ -336,11 +332,12 @@ function result = defaultConfig
   result.Pc = 0.5; %% Crossover probability
   result.Pm = 0.1; %% Mutation probability
 
-  result.ranking_fn = RANKING.none;
-  result.fitness_change_fn = FITNESS_CHANGE.linearScale;
-  result.selection_fn = SELECTION.wheel;
-  result.crossover_fn = CROSSOVER.singlePoint;
-  result.mutation_fn = MUTATION.bitFlip;
-  result.stop_criteria_fn = STOP_CRITERIA.time;
-  result.clamp_fn = CLAMP.default;
+  result.ranking_fn = RANKING.none; %% Ranking function (See Ranking.m)
+  result.fitness_change_fn = FITNESS_CHANGE.linearScale; %% Fitness change function (See Fitness_Change.m)
+  result.selection_fn = SELECTION.wheel; %% Selection function (See Selection.m)
+  result.crossover_fn = CROSSOVER.singlePoint; %% Crossover function (See Crossover.m)
+  result.mutation_fn = MUTATION.bitFlip; %% Mutation function (See Mutation.m)
+  result.stop_criteria_fn = STOP_CRITERIA.time; %% Stop criteria function (See Stop_Criteria.m)
+  %% IMPORTANT: Not used with binary values (no clamping is necessary).
+  result.clamp_fn = CLAMP.default; %% Clamp function (See Clamp.m)
 end

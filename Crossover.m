@@ -3,8 +3,8 @@ function Crossover
 
   %% Binary
   CROSSOVER.singlePoint = @singlePoint;
-  CROSSOVER.multiPoint = @multiPoint;
-  CROSSOVER.uniform = @uniform;
+  CROSSOVER.multiPoint = @multiPoint; %% N in [1, L - 1]
+  CROSSOVER.uniform = @uniform; %% P in [0, 1];  or P and T as function handles
 
 
   %% Arithmetic
@@ -16,51 +16,79 @@ end
 
 %% Binary crossovers
 function result = singlePoint(a, b, l)
+  %% SINGLEPOINT Choose a random point in [1, L - 1] and split both A
+  %% and B into two parts, then swap and merge them to create two
+  %% children.
+  %% A different point is choosen for each variable in a and b.
+  %%   CHILDREN = SINGLEPOINT(A, B, L) Create two children from A and
+  %%   B, with a chromosome length of L.
+  
   dim = size(a);
   N = dim(1);
   var_count = dim(2);
-  
-  %% NOTE: This check could be done elsewhere, but compared to the
-  %% function in itself, it does not impact performances.
+
+  %% For each variable find a point.
   points = randi(l - 1, N, var_count);
-      
-  flags = (2 .^ points) - 1;
+  flags = toFlag(points);
+  
   result = combineWithMask(a, b, flags, l);
 end
 
 function h = multiPoint(n)
-  h = @(a, b, l) multiPoint_(n, a, b, l);
+  %% MULTIPOINT Return a function that produces MULTIPOINT_(N, A, B,
+  %% L) when given A, B and L.
+  %% If N is 1, it returns SINGLEPOINT.
+  %%   H = MUTLIPOINT(N)
+  %%
+  %% See also SINGLEPOINT, MULTIPOINT_.
+  
+  if (n == 1)
+	h = singlePoint;
+  else
+	h = @(a, b, l) multiPoint_(n, a, b, l);
+  end
 end
 
 %% TODO?: multiPoint crossover can be implemented for real values.
 function result = multiPoint_(n, a, b, l)
+  %% MULTIPOINT_ Choose N random points in [1, L - 1] and split both A
+  %% and B into N+1 parts, then swap and merge them to create two
+  %% children.
+  %% N different points are choosen for each variable in A and B.
+  %%   CHILDREN = MULTIPOINT_(N, A, B, L) Create two children from A
+  %% and B, with a chromosome length of L.
+  %%
+  %% See also SINGLEPOINT.
+  
   global UTILS;
   
   if (n >= l)
-	error('multipoint crossover: crossover count must be < chromosome length');
+	error('multipoint crossover: N must be < L');
   end
   
   dim = size(a);
   N = dim(1);
   var_count = dim(2);
   
-  if (n == 1)
-    result = singlePoint(a, b, l);
- 	return
-  else
-      %% NOTE: According to the slides, it should be left to the user to
-      %% specify weither or not variables are combined (and l may be
-      %% different for each).
-      %% This is _not_ handled (btw).
-      BY_COLUMN = 2;
-      [~, indices] = sort(rand(N, l - 1, var_count), BY_COLUMN);
-      points = sort(indices(:, 1:n, :), BY_COLUMN);
-  end
-
+  %% NOTE: According to the slides, it should be left to the user to
+  %% specify weither or not variables are combined (and l may be
+  %% different for each).
+  %% This is _not_ handled (btw).
   %% TODO: Explain!
-  flags = (2 .^ points) - 1;
-  mask = zeros(N, var_count);
+  %% TODO(@perf): See if using randperm is faster.
+  BY_COLUMN = 2;
+  [~, indices] = sort(rand(N, l - 1, var_count), BY_COLUMN);
+  points = sort(indices(:, 1:n, :), BY_COLUMN);
+
   
+  flags = toFlag(points);
+
+  %% Each point has a corresponding flag. To make the computation
+  %% faster, we first compute the final flag (the mask) we get after
+  %% splitting at each different point.
+  %% This is done by xoring each flag successively.
+  %% e,g: points = [2, 4] => [0..00011, 0..01111] => 0..01100.
+  mask = zeros(N, var_count);
   for i = 1:var_count
     mask(:, i) = UTILS.reduce(@bitxor, flags(:, :, i), 0);
   end
@@ -116,25 +144,27 @@ function result = uniform_(p, a, b, l)
   result = combineWithMask(a, b, mask, l);
 end
 
-function result = combineWithMask(a, b, mask, l)
-  max_val = 2^l - 1;
+function result = toFlag(point)
+  %% TOFLAG Convert POINT into a decimal flag: everything before that
+  %% point (right-wise) is 1, and everything after is 0.
+  %% e,g: point = 3 => 0..00111
+  
+  result = (2 .^ point) - 1;
+end
 
-  %% NOTE: This is to use array application of bit functions, so I do
-  %% not have to manually create a loop (which is slower).
-  %% mask = mask .* ones(size(a));
+function result = combineWithMask(a, b, mask, l)
+  %% COMBINEWITHMASK Create two children based on MASK (an integer
+  %% between 0 and 2^L -1).
+  %% For the first child, 1s indicate which parts of parent A are
+  %% kept. Same goes for 0s and B.
+  %% 1s and 0s are inverted for the second child.
+  
+  max_val = 2^l - 1;
   inv_mask = bitxor(mask, max_val);
   
-  result = makeChildren(a, b, mask, inv_mask);
+  result = [ bitor(bitand(a, mask), bitand(b, inv_mask)), ...
+			 bitor(bitand(b, mask), bitand(a, inv_mask)) ];
 end
-
-%% TODO: Find a better name.
-function result = makeChildren(a, b, m, im)
-  c1 = bitor(bitand(a, m), bitand(b, im));
-  c2 = bitor(bitand(b, m), bitand(a, im));
-  
-  result = [c1, c2];
-end
-
 
 %% Arithmetic crossovers
 function result = local_arithmetic(a, b, ~)
