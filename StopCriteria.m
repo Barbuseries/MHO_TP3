@@ -14,6 +14,7 @@ function StopCriteria
   
   STOP_CRITERIA.threshold = @threshold;
   STOP_CRITERIA.variance = @variance;
+  STOP_CRITERIA.minMaxRatio = @minMaxRatio;
 
   %% TODO: Fitness value change rate
 end
@@ -40,4 +41,19 @@ function result = varianceInner_(variance, fitness)
   %% TODO: Doc...
   
   result = (var(fitness) <= variance);
+end
+
+function h = minMaxRatio(r)
+  if (r <= 0)
+	error('minMaxRatio: R must be > 0');
+  end
+  
+  h = @(f) minMaxRatioInner_(r, f);
+end
+
+function result = minMaxRatioInner_(ratio, fitness)
+  max_f = max(fitness);
+  min_f = min(fitness);
+
+  result = (abs((max_f / min_f) - ratio) <= eps);
 end
