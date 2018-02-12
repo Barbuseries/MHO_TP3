@@ -246,6 +246,7 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
   dim = size(constraints);
   var_count = dim(1);
   population = initialGeneration(N, constraints, l);
+  iteration_appeared_in = ones(1, length(population));
   
   if (l == -1)
 	context = struct('constraints', constraints, 'G_max', G_max, 'iteration', 0, 'clamp_fn', clamp_fn);
@@ -306,12 +307,13 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
 	if (lambda == -1) %% Replace the whole population
 	  population = mutation_fn(children, mutations, context);
 	else
-	  ordered_individuals = replacement_fn(fitness);
+	  ordered_individuals = replacement_fn(fitness, iteration_appeared_in);
 	  %% TODO?: If lambda == 1, should the child kept be chosen at
 	  %% random? Or is choosing the first one enough?
 	  replaced_indices = ordered_individuals(1:children_count);
 	  
 	  population(replaced_indices, :) = mutation_fn(children, mutations, context);
+	  iteration_appeared_in(replaced_indices) = g;
 	end
 
 	%% NOTE: Currently, clamping the population inside the constraints
