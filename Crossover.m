@@ -181,7 +181,7 @@ function result = uniform_05_(a, b, l)
   %% has a (1/2)^l chance of happening.
   %% Which is the same as the chance of obtaining a given random
   %% integer in [0, 2^l - 1].
-  %% So we can represent just the mask as a random number in this same
+  %% So we can just represent the mask as a random number in this same
   %% interval.
   %% NOTE(@perf): This does not depend on l!
   mask = randi(max_val, N, var_count);
@@ -190,7 +190,7 @@ end
 
 function result = uniform_(p, a, b, l)
 	%UNIFORM_ Create two children from A and B.
-	% The first child has a possibility of P that a given allele comes
+	% The first child has a possibility P that a given allele comes
 	% from A, and (1 - P) that it comes from B.
 	% Those probabilities are inverted for the second child.
 	%   CHILDREN = UNIFORM_(P, A, B, L)

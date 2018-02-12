@@ -32,14 +32,19 @@ end
 
 %% Binary
 function result = bitFlip(children, mutations, ~)
-  %% TODO: Doc...
+	 %BITFLIP For each element I in mutations where mutations(I) == 1,
+	 % invert the corresponding bit in children.
   
   global UTILS;
   
   dim = size(children);
   var_count = dim(2);
-  
-  %% TODO: Explain!
+
+  %% 'mutations' contains 1s and 0s, that we use to represent the
+  %% mutation (1s flip the bit when xor-ing, 0s do not).
+  %% 'reshape' is used to handle different masks for each variable.
+  %% (We have a matrix of Nxlxvar_count 1s and 0s, that we them
+  %% convert to Nxvar_count integers)
   mask = reshape(UTILS.arrayToDec(mutations), [], var_count);
 
   result = bitxor(children, mask); %% Do a flip!
@@ -47,7 +52,9 @@ end
 
 %% Arithmetic
 function result = uniform(children, mutations, context)
-  %% TODO: Doc...
+	 %BITFLIP For each element I in mutations where mutations(I) == 1,
+	 % assign a random value inside CONTEXT.CONSTRAINTS to the
+	 % corresponding variable in children.
   
   global UTILS;
     
@@ -55,12 +62,16 @@ function result = uniform(children, mutations, context)
 
   N = dim(1);
   
-  %% TODO: Explain!
+  %% Children which do not mutate (mutations == 0) keep their values.
+  %% Otherwhise, they get a random value inside the constraints.
   result = children .* (mutations == 0) + mutations .* UTILS.randomIn(context.constraints, N);
 end
 
 function result = boundary(children, mutations, context)
-  %% TODO: Doc...
+	%BOUNDARY For each element I in mutations where mutations(I) == 1,
+	% draw a random number U in ]0, 1[. If assign U > 0.5, set the
+	% corresponding variable in children to the upper bound in
+	% CONTEXT.CONSTRAINTS, otherwhise, set it to the lower bound.
   
   constraints = context.constraints;
   
@@ -69,12 +80,13 @@ function result = boundary(children, mutations, context)
   N = dim(1);
   var_count = dim(2);
   
-  %% TODO: Explain!
+  %% If we do not mutate, mutation is 0.
+  %% Otherwhise, it is set to a random number in ]0, 1[.
   mutations = mutations .* rand(N, var_count, 1); 
   
-  keep = children .* (mutations == 0);
-  clamp_up = constraints(:, 2)' .* (mutations > 0.5);
-  clamp_down = constraints(:, 1)' .* ((mutations > 0) & (mutations <= 0.5));
+  keep = children .* (mutations == 0); %% Keep value (or zero if not related)
+  clamp_up = constraints(:, 2)' .* (mutations > 0.5); %% Set to upper bound (or zero if not related)
+  clamp_down = constraints(:, 1)' .* ((mutations > 0) & (mutations <= 0.5)); %% Set to lower bound (or zero if not related)
   
   result = keep + clamp_up + clamp_down;
 end

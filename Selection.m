@@ -106,7 +106,11 @@ function h = unbiasedTournament(k)
 end
 
 function result = unbiasedTournament_(k, probabilities)
-  %% TODO: Doc...
+ %UNBIASEDTOURNAMENT_ Create K permutations of probabilities. At each
+ % index, compare the K permutations and keep the index of the maximum
+ % associated element in PROBABILITIES.
+ %
+ % See also SELECTION>UNBIASEDTOURNAMENT, SELECTION>TOURNAMENT.
   
   N = length(probabilities);
 
@@ -119,7 +123,9 @@ function result = unbiasedTournament_(k, probabilities)
 	permutations(i, :) = randperm(N);
   end
 
-  %% TODO: Explain!
+  %% Comparing the permutations column-wise is the same as transposing
+  %% them and comparing them row-wise (which is the same as a
+  %% tournament selection).
   permutations = permutations';
   max_indices = tournamentSelect_(permutations, probabilities);
   
@@ -129,12 +135,22 @@ end
 function result = tournamentSelect_(random_indices, probabilities)
   N = length(probabilities);
   
-  %% TODO: Explain!
+  %% Find the indices of the maximum values row-wise.
   BY_ROW = 2;
   [~, rel_max_indices] = max(probabilities(random_indices), [], BY_ROW);
+
+  %% max returns the index relative to the row (not the whole matrix)
+  %% i.e, 1 correponds to the first column, no matter which row we are
+  %% in.
+  %% And I want 1 to only refer to the first column in the first row.
   result = relatviveToExactIndex_(rel_max_indices, N);
 end
 
 function result = relatviveToExactIndex_(ind, N)
+  %% ind is the relative index of the column (in 1:N).
+  %% What we want is its exact location in the matrix.
+  %% We know the matrix has N rows and that matrix indexing is
+  %% column-wise.
+  %% i.e, 1 refers to (1, 1), 2 to (1, 2), ..., N + 1 to (2, 1), ...
   result = (ind - 1) * N + (1:N)';
 end
