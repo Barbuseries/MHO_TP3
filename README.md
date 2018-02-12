@@ -25,6 +25,6 @@
 
 # TODO 
 
-	  - steady state algorithm strategy                  (???)
+	  - steady state algorithm strategy                  (???) - IN PROGRESS
 	  - another variation operator                       (???)
       - improve history and plots                        (one day)

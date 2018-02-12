@@ -188,6 +188,7 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
   global UTILS;
   global RANKING;
   global FITNESS_CHANGE;
+  global REPLACEMENT;
 
   %% TODO: Parameter check and default value.
   
@@ -196,6 +197,7 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
   %% Same for arithmetic functions and l == -1.
   N = config.N;
   l = config.l;
+  lambda = config.lambda;
   
   G_max = config.G_max;
   
@@ -209,6 +211,7 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
   mutation_fn = config.mutation_fn;
   stop_criteria_fn = config.stop_criteria_fn;
   clamp_fn = config.clamp_fn;
+  replacement_fn = config.replacement_fn;
 
   use_ranking = ~isequal(ranking_fn, RANKING.none);
   use_fitness_change = ~isequal(fitness_change_fn, FITNESS_CHANGE.none);
@@ -225,6 +228,17 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
     probabilities_fn = fitness_change_fn;
   end
 
+  use_steady_state = (lambda ~= -1);
+  use_replacement_fn = ~isequal(replacement_fn, REPLACEMENT.none);
+
+  if (use_steady_state)
+	if (~use_replacement_fn)
+	  error('when using steady state, replacement_fn must not be REPLACEMENT.none');
+	end
+  elseif (use_replacement_fn)
+	warning('replacement_fn will be ignored because steady state is not used');
+  end
+
   decode_fn = UTILS.decode(constraints, l);
 
   tic;
@@ -237,6 +251,12 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
 	context = struct('constraints', constraints, 'G_max', G_max, 'iteration', 0, 'clamp_fn', clamp_fn);
   else
 	context = l;
+  end
+
+  if (lambda == -1)
+	children_count = N;
+  else
+	children_count = lambda;
   end
 
   history = {};
@@ -265,6 +285,12 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
 	selection = selection_fn(probabilities);
 	mating_pool = population(UTILS.shuffle(selection), :);
 
+	if (lambda ~= -1)
+	  %% Choose two parents at random
+	  random_pair = randi(length(mating_pool), 2, 1);
+	  mating_pool = mating_pool(random_pair, :);
+	end
+
 	%% Crossover
 	children = crossover(mating_pool, crossover_fn, Pc, context);
 
@@ -272,12 +298,21 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
 	%% TODO: This check can be done outside the loop.
 	%% Every allele that needs to mutate is 1 at the correponding index
 	if (l == -1)
-	  mutations = rand(N, var_count, 1) <= Pm;
+	  mutations = rand(children_count, var_count, 1) <= Pm;
 	else
-	  mutations = rand(N, l, var_count) <= Pm;
+	  mutations = rand(children_count, l, var_count) <= Pm;
 	end
 
-	population = mutation_fn(children, mutations, context);
+	if (lambda == -1) %% Replace the whole population
+	  population = mutation_fn(children, mutations, context);
+	else
+	  ordered_individuals = replacement_fn(fitness);
+	  %% TODO?: If lambda == 1, should the child kept be chosen at
+	  %% random? Or is choosing the first one enough?
+	  replaced_indices = ordered_individuals(1:children_count);
+	  
+	  population(replaced_indices, :) = mutation_fn(children, mutations, context);
+	end
 
 	%% NOTE: Currently, clamping the population inside the constraints
 	%% is done in each crossover / function that _can_ produce
@@ -340,9 +375,11 @@ function result = defaultConfig
   global MUTATION;
   global STOP_CRITERIA;
   global CLAMP;
+  global REPLACEMENT;
   
   result.N = 100;
   result.G_max = 100;
+  result.lambda = -1;
   
   %% NOTE: 'binary' is just an integer representation (to get to the
   % actual value => v = (i / maxI) * (c(1) - c(0)) + c(0), with c the
@@ -359,4 +396,5 @@ function result = defaultConfig
   result.mutation_fn = MUTATION.bitFlip;
   result.stop_criteria_fn = STOP_CRITERIA.time;
   result.clamp_fn = CLAMP.default;
+  result.replacement_fn = REPLACEMENT.none;
 end
