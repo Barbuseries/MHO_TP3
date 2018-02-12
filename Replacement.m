@@ -7,8 +7,6 @@ function Replacement
   REPLACEMENT.random = @random;
 end
 
-%% TODO?: Add a parameter to know how many children are needed? (1 or 2)
-
 function result = value(fitness, ~, lambda)
 		  %VALUE Replace the worst individuals based on their fitness.
 
