@@ -9,7 +9,7 @@ function Mutation
 					  %  boundary
 					  %  normal(???)
 					  %  normalN(???)
-					  %  polynomial(N), N > 0  %% TODO: Check interval
+					  %  polynomial(N), N >= 0
 					  %  nonUniform(B) %% TODO: Check interval
 					  %  
 					  % See also MUTATION>BITFLIP, MUTATION>UNIFORM,
@@ -99,9 +99,10 @@ function result = normal(children, mutations, context)
   
   N = dim(1);
   
-  %% TODO: Explain!
+  %% Use the same sigma for all variables
+  %% (sigma is 0 if there is no mutation)
   sigma = rand(N, 1) .* (mutations == 1);
-  result = normalAnyInner_(sigma, children, context);
+  result = normalAny_(sigma, children, context);
 end
 
 %% TODO: Should the the sigma be random or set by the user?
@@ -113,15 +114,13 @@ function result = normalN(children, mutations, context)
   N = dim(1);
   var_count = dim(2);
   
-  %% TODO: Explain!
+  %% Use a different sigma for all variables
+  %% (sigma is 0 if there is no mutation)
   sigma = rand(N, var_count) .* (mutations == 1);
-  result = normalAnyInner_(sigma, children, context);
+  result = normalAny_(sigma, children, context);
 end
 
-%% TODO: Explain!
-function result = normalAnyInner_(sigma, children, context)
-  %% TODO: Doc...
-  
+function result = normalAny_(sigma, children, context)
   constraints = context.constraints;
   clamp_fn = context.clamp_fn;
   
@@ -137,13 +136,22 @@ function result = normalAnyInner_(sigma, children, context)
 end
 
 function h = polynomial(n)
-  %% TODO: Doc...
+			%POLYNOMIAL Return a function that produces
+			% POLYNOMIAL_(N, CHILDREN, MUTATIONS, CONTEXT), when given
+			% CHILDREN, MUTATIONS and CONTEXT.
+			%   H = POLYNOMIAL(N)
+			%
+			% See also MUTATION>POLYNOMIAL_.
+
+  if (n < 0)
+	error('polynomial: N must be >= 0');
+  end
   
-  h = @(c, m, cx) polynomialInner_(n, c, m, cx);
+  h = @(c, m, cx) polynomial_(n, c, m, cx);
 end
 
 
-function result = polynomialInner_(n, children, mutations, context)
+function result = polynomial_(n, children, mutations, context)
   %% TODO: Doc...
   
   constraints = context.constraints;
@@ -174,12 +182,17 @@ function result = polynomialInner_(n, children, mutations, context)
 end
 
 function h = nonUniform(b)
-  %% TODO: Doc...
+			%NONUNIFORM Return a function that produces
+			% NONUNIFORM_(N, CHILDREN, MUTATIONS, CONTEXT), when given
+			% CHILDREN, MUTATIONS and CONTEXT.
+			%   H = NONUNIFORM(N)
+			%
+			% See also MUTATION>NONUNIFORM_.
   
-  h = @(c, m, cx) nonUniformInner_(b, c, m, cx);
+  h = @(c, m, cx) nonUniform_(b, c, m, cx);
 end
 
-function result = nonUniformInner_(b, children, mutations, context)
+function result = nonUniform_(b, children, mutations, context)
   %% TODO: Doc...
   
   constraints = context.constraints;

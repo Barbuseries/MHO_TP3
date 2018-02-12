@@ -22,42 +22,36 @@ function StopCriteria
 end
 
 function h = threshold(t)
-  %% TODO: Doc...
+			%THRESHOLD Stop at least one individual as a fitness >= T.
   
-  h = @(f, old_f) thresholdInner_(t, f);
+  h = @(f, old_f) threshold_(t, f);
 end
 
-function result = thresholdInner_(threshold, fitness)
-  %% TODO: Doc...
-  
-  result = ~isempty(find(fitness >= threshold, 1));
+function result = threshold_(t, fitness)
+  result = ~isempty(find(fitness >= t, 1));
 end
 
 function h = variance(v)
-  %% TODO: Doc...
+  %VARIANCE Stop when var(fitness) <= V..
   
-  h = @(f, old_f) varianceInner_(v, f);
+  h = @(f, old_f) variance_(v, f);
 end
 
-function result = varianceInner_(variance, fitness)
-  %% TODO: Doc...
-  
-  result = (var(fitness) <= variance);
+function result = variance_(v, fitness)
+  result = (var(fitness) <= v);
 end
 
 function h = minMaxRatio(r)
-  %% TODO: Doc...
+ %MINMAXRATIO Stop when max(fitness) / min(fitness) is equal to ratio.
   
   if (r <= 0)
 	error('minMaxRatio: R must be > 0');
   end
   
-  h = @(f, old_f) minMaxRatioInner_(r, f);
+  h = @(f, old_f) minMaxRatio_(r, f);
 end
 
-function result = minMaxRatioInner_(ratio, fitness)
-  %% TODO: Doc...
-  
+function result = minMaxRatio_(ratio, fitness)
   max_f = max(fitness);
   min_f = min(fitness);
 
@@ -65,14 +59,14 @@ function result = minMaxRatioInner_(ratio, fitness)
 end
 
 function h = meanChangeRate(cr)
-  %% TODO: Doc...
+	%MEANCHANGERATE Stop when the difference between mean(fitness) and
+	% mean(old_fitness) is <= CR * 100.
   
-  h = @(f, old_f) meanChangeRateInner_(cr, f, old_f);
+  h = @(f, old_f) meanChangeRate_(cr, f, old_f);
 end
 
-function result = meanChangeRateInner_(change_rate, fitness, old_fitness)
-  %% TODO: Doc...
-  
+function result = meanChangeRate_(change_rate, fitness, old_fitness)
+  %% First iteration, no old fitness
   if (length(old_fitness) == 0)
 	result = 0;
 	return;

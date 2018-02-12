@@ -13,18 +13,20 @@ function Clamp
 end
 
 function result = default(val, lowest, biggest)
-  %% TODO: Doc...
+							   %DEFAULT If VAL < LOWEST, RESULT = LOWEST.
+							   % If VAL > BIGGEST, RESULT = BIGGEST.
   
   result = max(min(val, biggest), lowest);
 end
 
 %% NOTE: Btw, this fails if val is too low or too high.
 function result = fancy(val, lowest, biggest)
-  %% TODO: Doc...
+  %FANCY If VAL < LOWEST, RESULT = 2 * LOWEST - VAL.
+  % If VAL > BIGGEST, RESULT = 2 * BIGGEST - VAL.
   
   below = val < lowest;
   above = val > biggest;
-  correct =  ~below & ~above;
+  in_bounds =  ~below & ~above;
 
-  result = val .* correct + (2 * lowest - val) .* below + (2 * biggest - val) .* above;
+  result = val .* in_bounds + (2 * lowest - val) .* below + (2 * biggest - val) .* above;
 end

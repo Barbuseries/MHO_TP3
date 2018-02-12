@@ -1,6 +1,3 @@
-%% TODO?: As we already have to type Problem.<problem>(), maybe we
-%% could change their definition to call optimize directly (instead of
-%% Problem.<problem>().optimize(config) => Problem.<problem>(config)).
 function Problem
   global PROBLEM;
   
