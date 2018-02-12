@@ -21,10 +21,10 @@
 	  - ranking methods                                  (both)
 	  - 2 methods checking solutions feasibility         (real)
 	  - tournament selection                             (both)
+	  - stop criteria                                    (both)
 
 # TODO 
 
 	  - steady state algorithm strategy                  (???)
-	  - stop criteria                                    (???) - PARTIALLY
 	  - another variation operator                       (???)
       - improve history and plots                        (one day)

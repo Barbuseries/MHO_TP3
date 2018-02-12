@@ -243,6 +243,7 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
   history.iterations(1:G_max+1) = struct('population', [], 'fitness', [], 'objective', [], 'bestIndividual', [], 'maxFitness', 0);
 
   last_iteration = G_max + 1;
+  old_fitness = [];
   for g = 1:G_max
 	if (l == -1)
 	  context.iteration = g;
@@ -251,7 +252,7 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
 	%% Evaluation
 	[fitness, real_values_pop] = evalFitnessAndPop(population, fitness_fn, decode_fn);
 
-	if (stop_criteria_fn(fitness))
+	if (stop_criteria_fn(fitness, old_fitness))
 	  last_iteration = g;
 	  break
 	end
@@ -286,6 +287,8 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
 	%% mutation have taken place).
 	%% Since every mutation and crossover functions have been
 	%% implemented, it will probably not be done.
+	
+	old_fitness = fitness;
   end
 
   [fitness, real_values_pop] = evalFitnessAndPop(population, fitness_fn, decode_fn);
