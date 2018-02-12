@@ -307,10 +307,10 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
 	if (lambda == -1) %% Replace the whole population
 	  population = mutation_fn(children, mutations, context);
 	else
-	  ordered_individuals = replacement_fn(fitness, iteration_appeared_in);
+	  replaced_indices = replacement_fn(fitness, iteration_appeared_in, lambda);
 	  %% TODO?: If lambda == 1, should the child kept be chosen at
 	  %% random? Or is choosing the first one enough?
-	  replaced_indices = ordered_individuals(1:children_count);
+	  children = children(1:lambda, :);
 	  
 	  population(replaced_indices, :) = mutation_fn(children, mutations, context);
 	  iteration_appeared_in(replaced_indices) = g;
