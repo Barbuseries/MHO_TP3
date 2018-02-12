@@ -18,7 +18,11 @@ function Selection
 end
 
 function result = wheel(probabilities)
-  %% TODO: Doc...
+ %WHEEL For as many times as there are elements in PROBABILITIES, find
+ % the first index for which cumsum(PROBABILITIES) >= rand.
+ %
+ % See also SELECTION>STOCHASTICUNIVERSALSAMPLING.
+  
   global UTILS;
 
   %% We need to select as many individuals as there already are.
@@ -28,58 +32,86 @@ function result = wheel(probabilities)
 end
 
 function result = stochasticUniversalSampling(probabilities)
-  %% TODO: Doc...
+%STOCHASTICUNIVERSALSAMPLING Same as a wheel selection, but instead of
+% generating N random numbers, use N equidistant pointers which are
+% used as thresholds (the first pointer position is a random number in
+% [0, 1/N]), with N being the number of elements in PROBABILITIES.
+%
+% See also SELECTION>WHEEL.
   
   global UTILS;
   
   N = length(probabilities);
-  
-  %% TODO: Explain!
-  delta = 1/N;
-  start_pos = delta * rand();
-  pointers = delta * (0:(N-1)) + start_pos;
 
+  delta = 1/N; %% Distance between two pointers
+  start_pos = delta * rand();
+  pointers = delta * (0:(N-1)) + start_pos; %% Generate equidistant pointers starting at start_pos
+
+  %% Find the first index for which
+  %% cumsum(probabilities)(i) >= pointers(i)
   result = UTILS.select(probabilities, pointers');
 end
 
 function h = tournament(k)
-  %% TODO: Doc...
+	   %TOURNAMENT Return a function that produces TOURNAMENT_(K,
+	   % PROBABILITIES) when given PROBABILITIES.
+	   %   H = TOURNAMENT(K)
+	   %
+	   % 1 <= K <= N, with N = length(PROBABILITIES)
+	   %
+	   % See also SELECTION>UNBIASEDTOURNAMENT, SELECTION>TOURNAMENT_.
   
   if (k < 1)
-	error('k must be in [1, N]');
+	error('K must be in [1, N]');
   end
   
-  h = @(p) tournamentInner_(k, p);
+  h = @(p) tournament_(k, p);
 end
 
-function result = tournamentInner_(k, probabilities)
-  %% TODO: Doc...
+function result = tournament_(k, probabilities)
+%TOURNAMENT_ For as many times as there are elements in PROBABILITIES,
+% select K elements in PROBABILITIES at random and keep the index of
+% the maximum value.
+%
+% See also SELECTION>TOURNAMENT, SELECTION>UNBIASEDTOURNAMENT.
   
   N = length(probabilities);
 
   if (k > N)
-	error('k must be in [1, N]');
+	error('K must be in [1, N]');
   end
 
+  %% For each selection, select  which k elements we compare.
   random_indices = randi(N, N, k);
 
+  %% For each selection, the index of the maximum value (in random_indices)
   max_indices = tournamentSelect_(random_indices, probabilities);
   result = random_indices(max_indices);
 end
 
 function h = unbiasedTournament(k)
-  %% TODO: Doc...
+%UNBIASEDTOURNAMENT Return a function that produces UNBIASEDTOURNAMENT_(K,
+% PROBABILITIES) when given PROBABILITIES.
+%   H = UNBIASEDTOURNAMENT(K)
+%
+% 1 <= K <= N, with N = length(PROBABILITIES)
+%
+% See also SELECTION>TOURNAMENT, SELECTION>UNBIASEDTOURNAMENT_.
   
-  h = @(p) unbiasedTournamentInner_(k, p);
+  if (k < 1)
+	error('K must be in [1, N]');
+  end
+  
+  h = @(p) unbiasedTournament_(k, p);
 end
 
-function result = unbiasedTournamentInner_(k, probabilities)
+function result = unbiasedTournament_(k, probabilities)
   %% TODO: Doc...
   
   N = length(probabilities);
 
   if (k > N)
-	error('k must be in [1, N]');
+	error('K must be in [1, N]');
   end
 
   permutations = zeros(k, N);
@@ -95,8 +127,6 @@ function result = unbiasedTournamentInner_(k, probabilities)
 end
 
 function result = tournamentSelect_(random_indices, probabilities)
-  %% TODO: Doc...
-  
   N = length(probabilities);
   
   %% TODO: Explain!
@@ -106,7 +136,5 @@ function result = tournamentSelect_(random_indices, probabilities)
 end
 
 function result = relatviveToExactIndex_(ind, N)
-  %% TODO: Doc...
-  
   result = (ind - 1) * N + (1:N)';
 end

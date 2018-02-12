@@ -37,7 +37,7 @@ function result = singlePoint(a, b, l)
 	%SINGLEPOINT Choose a random point in [1, L - 1] and split both A
 	% and B into two parts, then swap and merge them to create two
 	% children.
-	% A different point is choosen for each variable in a and b.
+	% A different point is choosen for each variable in A and B.
 	%   CHILDREN = SINGLEPOINT(A, B, L) Create two children from A and
 	%   B, with a chromosome length of L.
 	%
