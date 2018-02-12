@@ -12,7 +12,7 @@ function StopCriteria
   global STOP_CRITERIA;
   
   %% Time
-  STOP_CRITERIA.time = @(f) 0;
+  STOP_CRITERIA.time = @(f, old_f) 0;
   
   STOP_CRITERIA.threshold = @threshold;
   STOP_CRITERIA.variance = @variance;
