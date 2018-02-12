@@ -9,8 +9,8 @@ function Crossover
 	   % Arithmetic crossovers
 	   %  wholeArithmetic
 	   %  localArithmetic
-	   %  blend(ALPHA = 0.5) %% TODO: See if there is a max value
-	   %  simulatedBinary(N), N > 0 %% TODO: Check interval
+	   %  blend(ALPHA = 0.5)
+	   %  simulatedBinary(N), N >= 0
 	   %
 	   % See also CROSSOVER>SINGLEPOINT, CROSSOVER>MULTIPOINT,
 	   % CROSSOVER>UNIFORM, CROSSOVER>WHOLEARITHMETIC,
@@ -297,7 +297,12 @@ function result = arithmeticCrossover_(n, a, b)
 end
 
 function h = blend(alpha)
-  %% TODO: Doc...
+%BLEND Return a function that produces BLEND_(ALPHA, A, B, CONTEXT)
+% when given A, B and CONTEXT.
+% ALPHA defaults to 0.5.
+%   H = BLEND(ALPHA)
+%
+% See also CROSSOVER>BLEND_.
   if ~exist('alpha', 'var')
 	alpha = 0.5;
   end
@@ -306,18 +311,33 @@ function h = blend(alpha)
 end
 
 function result = blend_(alpha, a, b, context)
-  %% TODO: Doc...
+%BLEND_ Create two children from A and B using ALPHA as the range
+% expansion parameter.
+%
+% Given A(i) and B(i) and assuming A(i) < B(i), produces
+% C(i) = rand((A(i) - ALPHA * (B(i) - A(i))), (B(i) + ALPHA * (B(i) - A(i))))
+%
+% This uses a clamping function.
+%
+% See also CROSSOVER>BLEND, CLAMP.
+  
   constraints = context.constraints;
   
   dim = size(a);
   N = dim(1);
   var_count = dim(2);
-  
+
+  %% The formula assumes a(i) < b(i). But this may not be the case!
+  %% For each variable (and each pair), we get the min and max values.
+  %% (So we can just replace a(i) by min_vals(i), and b(i) by
+  %% max_vals(i) in the formula).
   max_vals = max(a, b);
   min_vals = min(a, b);
 
-  %% TODO: Explain!
+  %% The 'ALPHA * (B(i) - A(i))' part
   delta = alpha * (max_vals - min_vals);
+
+  %% Lower and upper bounds of rand
   lb = min_vals - delta;
   ub= max_vals + delta;
 
@@ -326,35 +346,61 @@ function result = blend_(alpha, a, b, context)
 
   clamp_fn = context.clamp_fn;
 
-  result = [blendChild(lowest, biggest, lb, ub, N, var_count, clamp_fn), blendChild(lowest, biggest, lb, ub, N, var_count, clamp_fn)];
+  result = [ blendChild(lowest, biggest, lb, ub, N, var_count, clamp_fn), ...
+			 blendChild(lowest, biggest, lb, ub, N, var_count, clamp_fn) ];
 end
 
 function result = blendChild(lowest, biggest, lb, ub, N, var_count, clamp_fn)
-  %% TODO: Doc...
+  %BLENDCHILD Return N children, with VAR_COUNT variables in [lb, ub].
+  % CLAMP_FN is used to clamp out of bound variables inside
+  % [LOWEST, BIGGEST].
+  
   result = (ub - lb) .* rand(N, var_count) + lb;
   result = clamp_fn(result, lowest, biggest);
 end
 
 function h = simulatedBinary(n)
-  %% TODO: Doc...
+%SIMULATEDBINARY Return a function that produces SIMULATEDBINARY_(N, A, B)
+% when given A and B.
+% N must be >= 0.
+%   H = BLEND(N)
+%
+% See also CROSSOVER>SIMULATEDBINARY_.
+  if (n < 0)
+	error('simulatedBinary: N must be >= 0');
+  end
+  
   h = @(a, b, cx) simulatedBinary_(n, a, b, cx);
 end
 
 function result = simulatedBinary_(n, a, b, ~)
-  %% TODO: Doc...
+%SIMULATEDBINARY_ Create two children from A and B using N to generate
+% a random number.
+%
+% See also CROSSOVER>SIMULATEDBINARY.
+  
   dim = size(a);
   N = dim(1);
   var_count = dim(2);
 
-  %% TODO: Explain!
+  %% Generate u for all variables (and each pair)
   u = rand(N, var_count);
 
+  %% Sharp S is defined differently if u > 0.5 or u <= 0.5.
+  %% To avoid adding a conditional (and therefore a loop), we compute
+  %% a logical vector that is 1 if u <= 0.5 and 0 otherwhise.
+  %% We then proceed to compute the two different methods using u as a whole.
+  %% We use the logical vector to know which parts of those methods
+  %% belong to which u (by multiplying by the vector, if u <= 0.5, we
+  %% keep the value, otherwhise, we discard it. The opposite is true
+  %% if we multiply by the inverse vector).
   below = u <= 0.5;
   
   below_sharp_s = (2 * u) .^ (1 / (n + 1)) .* below;
   above_sharp_s = (2 * (1 - u)) .^ (- (1 / n) + 1) .* ~below;
   
   sharp_s = below_sharp_s + above_sharp_s;
+  
   common_part = 0.5 * (a + b);
   delta = 0.5 * sharp_s .* (a - b);
 
