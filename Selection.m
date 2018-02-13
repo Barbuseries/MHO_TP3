@@ -5,6 +5,7 @@ function Selection
 	% stochasticUniversalSampling
 	% tournament(K), K in [1, N]
 	% unbiasedTournament(K), K in [1, N]
+	% truncation(C), C in [1, N]
 	%
 	% See also SELECTION>WHEEL, SELECTION>STOCHASTICUNIVERSALSAMPLING,
 	% SELECTION>TOURNAMENT, SELECTION>UNBIASEDTOURNAMENT
@@ -15,6 +16,7 @@ function Selection
   SELECTION.stochasticUniversalSampling = @stochasticUniversalSampling;
   SELECTION.tournament = @tournament;
   SELECTION.unbiasedTournament = @unbiasedTournament;
+  SELECTION.truncation = @truncation;
 end
 
 function result = wheel(probabilities)
@@ -151,10 +153,62 @@ function result = tournamentSelect_(random_indices, probabilities)
 end
 
 function result = relativeToExactIndex_(ind, N)
+  
   %% ind is the relative index of the column (in 1:N).
   %% What we want is its exact location in the matrix.
   %% We know the matrix has N rows and that matrix indexing is
   %% column-wise.
   %% i.e, 1 refers to (1, 1), 2 to (1, 2), ..., N + 1 to (2, 1), ...
   result = (ind - 1) * N + (1:N)';
+end
+
+function h = truncation(c)
+			%TRUNCATION Return a function that produces TRUNCATION_(C,
+			% PROBABILITES) when given PROBABILITIES.
+			%
+			% See also SELECTION>TRUNCATION_.
+  
+  if (c < 0)
+	error('C must be > 0');
+  end
+
+  if (c == 1) %% Keep the whole population.
+	%% Small optimization, because I can (even though this is not a
+	%% real use case...).
+	h = @(p) 1:length(p);
+  else
+	h = @(p) truncation_(c, p);
+  end
+end
+
+function result = truncation_(c, probabilities)
+ %TRUNCATION_ Select N elements by keeping C times the N/C best elements.
+ % i.e, C = 10: keep the tenth of the population.
+ %
+ % If R = mod(N, C) ~= 0, fill the R remaining elements with the first
+ % R best elements.
+ %
+ % See also SELECTION>TRUNCTATION.
+  
+  N = length(probabilities);
+  
+  [~, ordered_indices] = sort(probabilities, 'descend');
+
+  keep_count = floor(N/c);
+  kept_indices = ordered_indices(1:keep_count);
+
+  %% We use the same elements c times.
+  fill_count = c * keep_count;
+
+  result = zeros(1, N);
+  result(1:fill_count) = repmat(kept_indices, 1, c);
+
+  rest = N - fill_count;
+
+  %% N is not divisible by C.
+  %% Get as many elements from kept_indices as needed (rest <
+  %% length(kept_indices)).
+  if (rest ~= 0)
+	result(fill_count+1:end) = kept_indices(1:rest);
+  end
 end
