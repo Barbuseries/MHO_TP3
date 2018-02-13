@@ -3,6 +3,7 @@
 %% Includes
 Utils;         global UTILS;
 
+Replacement;   global REPLACEMENT;
 Ranking;       global RANKING;
 FitnessChange; global FITNESS_CHANGE;
 Selection;     global SELECTION;
@@ -21,19 +22,21 @@ if (PROFILING)
   profile on;
 end
 
-p = PROBLEM.rosenbrock();
+p = PROBLEM.griewank();
 
 config = GA.defaultConfig();
 config.N = 1000;
-config.G_max = 1000;
+config.G_max = 5000;
 config.l = -1;
-config.ranking_fn = RANKING.nonLinear(0.99);
-config.fitness_change_fn = FITNESS_CHANGE.none;
-config.selection_fn = SELECTION.stochasticUniversalSampling;
-config.crossover_fn = CROSSOVER.blend();
+%%config.lambda = 1;
+% % config.ranking_fn = RANKING.nonLinear(0.99);
+config.fitness_change_fn = FITNESS_CHANGE.linearScale;
+config.selection_fn = SELECTION.unbiasedTournament(2);
+config.crossover_fn = CROSSOVER.blend(0.5);
 config.mutation_fn = MUTATION.uniform;
-config.stop_criteria_fn = STOP_CRITERIA.threshold(1.99);
-config.clamp_fn = CLAMP.fancy;
+%%config.stop_criteria_fn = STOP_CRITERIA.threshold(@gt, 2.002);
+config.clamp_fn = CLAMP.default;
+%%config.replacement_fn = REPLACEMENT.value;
 [r, h] = p.optimize(config);
 
 disp(r);

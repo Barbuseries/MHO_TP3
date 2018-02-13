@@ -89,11 +89,11 @@ function showHistory(problem, history, iterations)
 
   very_best_iteration = history.very_best.iteration;
   very_best = history.very_best.value;
-  maxFitness = history.very_best.fitness;
+  bestFitness = history.very_best.fitness;
   
-  plot(iterations, [values.maxFitness], '-+');
+  plot(iterations, [values.bestFitness], '-+');
   
-  plot(iterations(very_best_iteration), maxFitness, best_individual_format, 'markersize', best_individual_size);
+  plot(iterations(very_best_iteration), bestFitness, best_individual_format, 'markersize', best_individual_size);
   
   xlabel('Iteration');
   ylabel('Max fitness');
@@ -151,16 +151,16 @@ function showHistory(problem, history, iterations)
   end
 end
 
-function result = createRecord(population, fitness, objective_fn)
+function result = createRecord(population, fitness, objective_fn, compare_fitness_fn)
   global UTILS;
   
   result.population = population;
   result.fitness = fitness;
   result.objective = UTILS.evalFn(objective_fn, population);
 
-  [maxFitness, index] = max(fitness); 
+  [bestFitness, index] = compare_fitness_fn(fitness); 
   result.bestIndividual = result.population(index, :);
-  result.maxFitness = maxFitness;
+  result.bestFitness = bestFitness;
 end
 
 function result = rankProbabilities(fitness, ranking_fn)
@@ -169,22 +169,11 @@ function result = rankProbabilities(fitness, ranking_fn)
 end
 
 function result = fitnessProbabilities(fitness, fitness_change_fn)
-  %% TODO: Fitness transfert if minimizing.
   fitness = fitness_change_fn(fitness);
   result = fitness / sum(fitness);
 end
 
-function [result, history] = maximize(objective_fn, fitness_fn, constraints, config)
-  %% Maximize fitness_fn whose parameters are defined inside the given
-  %% constraints. (objective_fn is only used to record the population's
-  %% value at each iteration)
-  %%
-  %% Return the best individual from the last iteration as well as an
-  %% history which contains, for each iteration: - the population (real
-  %% values) and its fitness - the best individual its fitness - the
-  %% best overall individual (very_best): its value, fitness and the
-  %% first iteration it appeared in.
-  
+function [result, history] = optimize(maximizing, objective_fn, fitness_fn, constraints, config)
   global UTILS;
   global RANKING;
   global FITNESS_CHANGE;
@@ -241,6 +230,12 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
 
   decode_fn = UTILS.decode(constraints, l);
 
+  if (maximizing)
+	compare_fitness_fn = @max;
+  else
+	compare_fitness_fn = @min;
+  end
+
   tic;
 
   dim = size(constraints);
@@ -261,7 +256,7 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
   end
 
   history = {};
-  history.iterations(1:G_max+1) = struct('population', [], 'fitness', [], 'objective', [], 'bestIndividual', [], 'maxFitness', 0);
+  history.iterations(1:G_max+1) = struct('population', [], 'fitness', [], 'objective', [], 'bestIndividual', [], 'bestFitness', 0);
 
   last_iteration = G_max + 1;
   old_fitness = [];
@@ -276,10 +271,17 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
 	if (stop_criteria_fn(fitness, old_fitness))
 	  last_iteration = g;
 	  break
-	end
-	
+    end
+
 	%% Recording
-	history.iterations(g) = createRecord(real_values_pop, fitness, objective_fn);
+	history.iterations(g) = createRecord(real_values_pop, fitness, objective_fn, compare_fitness_fn);
+    
+    %% Just so we never have negative fitness values where it is not expected.
+	if (maximizing)
+      fitness = offsetFitness(fitness);
+	else
+	  fitness = fitnessTransfert(fitness);
+	end
 
 	%% Selection (based on rank or derived from fitness)
 	probabilities = get_probabilities(fitness, probabilities_fn);
@@ -318,7 +320,7 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
 
 	%% NOTE: Currently, clamping the population inside the constraints
 	%% is done in each crossover / function that _can_ produce
-	%% offsprings outside the bounds.
+    %% offsprings outside the bounds.
 	%% As this is not a performance issue, it could instead be
 	%% centralized here (clamping would be done after crossover and
 	%% mutation have taken place).
@@ -330,25 +332,62 @@ function [result, history] = maximize(objective_fn, fitness_fn, constraints, con
 
   [fitness, real_values_pop] = evalFitnessAndPop(population, fitness_fn, decode_fn);
 
-  [~, index_best] = max(fitness);
+  [~, index_best] = compare_fitness_fn(fitness);
   result = real_values_pop(index_best, :);
 
-  history.iterations(last_iteration) = createRecord(real_values_pop, fitness, objective_fn);
+  history.iterations(last_iteration) = createRecord(real_values_pop, fitness, objective_fn, compare_fitness_fn);
 
   %% Remove skipped iterations
   history.iterations(last_iteration+1:end) = [];
 
-  [max_fitness, very_best_index] = max([history.iterations.maxFitness]);
+  [best_fitness, very_best_index] = compare_fitness_fn([history.iterations.bestFitness]);
   best_iteration = history.iterations(very_best_index);
-  history.very_best = struct('value', best_iteration.bestIndividual(1, :), 'fitness', max_fitness, 'iteration', very_best_index);
+  history.very_best = struct('value', best_iteration.bestIndividual(1, :), 'fitness', best_fitness, 'iteration', very_best_index);
 
   toc;
 end
 
-%% NOTE: Minimizing f(x) is maximizing g(x) = -f(x)
-function [result, history] = minimize(obj_fn, fit_fn, constraints, config)
-  [result, history] = maximize(obj_fn, @(varargin) -fit_fn(varargin{:}), constraints, config);
+function [result, history] = maximize(objective_fn, fitness_fn, constraints, config)
+  %% Maximize fitness_fn whose parameters are defined inside the given
+  %% constraints. (objective_fn is only used to record the population's
+  %% value at each iteration)
+  %%
+  %% Return the best individual from the last iteration as well as an
+  %% history which contains, for each iteration: - the population (real
+  %% values) and its fitness - the best individual its fitness - the
+  %% best overall individual (very_best): its value, fitness and the
+  %% first iteration it appeared in.
+  
+  [result, history] = optimize(1, objective_fn, fitness_fn, constraints, config);
 end
+
+%% NOTE: Minimizing f(x) is maximizing g(x) = max(f(x)) -f(x)
+%% FIXME: If we use the fitness transfert, we can not set a threshold limit for the fitness.
+function [result, history] = minimize(obj_fn, fit_fn, constraints, config)
+    [result, history] = optimize(0, obj_fn, fit_fn, constraints, config);
+end
+
+function result = fitnessTransfert(fitness)
+    result = max(fitness) - fitness;
+end
+
+function result = offsetFitness(fitness)
+  %% TODO: Doc...
+  
+  min_fitness = min(fitness);
+  
+  if (min_fitness < 0)
+      %% In case all individuals have the same fitness
+      if (min_fitness == max(fitness))
+          result = fitness;
+      else
+        result = fitness - min(fitness);
+      end
+  else
+	result = fitness;
+  end
+end
+
 
 function result = defaultConfig
 	 %DEFAULTCONFIG Preconfigured genetic algorithm config.

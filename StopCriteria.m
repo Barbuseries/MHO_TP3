@@ -1,14 +1,14 @@
 function StopCriteria
-							%STOPCRITERIA All stop criteria functions.
-							%
-							% time
-							% threshold(T), T as upper limit
-							% variance(V), V as lower limit
-							% minMaxRatio(R)
-							% meanChangeRate(R), R as lower limit
-							%
-							% See also STOPCRITERIA>THRESHOLD,
-							% STOPCRITERIA>VARIANCE
+			%STOPCRITERIA All stop criteria functions.
+			%
+			% time
+			% threshold(RELATION, T), T as limit (depends on RELATION)
+			% variance(V), V as lower limit
+			% minMaxRatio(R)
+			% meanChangeRate(R), R as lower limit
+			%
+			% See also STOPCRITERIA>THRESHOLD, STOPCRITERIA>ABOVE, 
+			% STOPCRITERIA>VARIANCE
   global STOP_CRITERIA;
   
   %% Time
@@ -21,14 +21,14 @@ function StopCriteria
   STOP_CRITERIA.meanChangeRate = @meanChangeRate;
 end
 
-function h = threshold(t)
-			%THRESHOLD Stop at least one individual as a fitness >= T.
+function h = threshold(relation, t)
+			%THRESHOLD Stop at least one individual as a fitness such as RELATION(FITNESS, T) == 1.
   
-  h = @(f, old_f) threshold_(t, f);
+  h = @(f, old_f) threshold_(relation, t, f);
 end
 
-function result = threshold_(t, fitness)
-  result = ~isempty(find(fitness >= t, 1));
+function result = threshold_(relation, t, fitness)
+  result = ~isempty(find(relation(fitness, t), 1));
 end
 
 function h = variance(v)

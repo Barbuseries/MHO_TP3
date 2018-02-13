@@ -2,7 +2,6 @@ function FitnessChange
 		   %FITNESSCHANGE All fitness change functions.
 		   %
 		   % none
-		   % offset
 		   % linearScale
 		   % sigmaTruncation(C), C in [1, 5]
 		   %
@@ -11,26 +10,8 @@ function FitnessChange
   global FITNESS_CHANGE;
 
   FITNESS_CHANGE.none = @(f) f;
-  FITNESS_CHANGE.offset = @offset;
   FITNESS_CHANGE.linearScale = @linearScale;
   FITNESS_CHANGE.sigmaTruncation = @sigmaTruncation;
-end
-
-%% NOTE: This is not a standard function. I just used this before
-%% implementing any other method so I could handle negative fitness
-%% values.
-function result = offset(fitness)
-  %% TODO: Doc...
-  
-  min_fitness = min(fitness);
-  
-  %% Remove negative fitness and a little more, so their fitness is
-  %% not 0 (not selectable).
-  if (min_fitness < 0)
-	result = fitness - 2 * min(fitness);
-  else
-	result = fitness;
-  end
 end
 
 function result = linearScale(fitness)
