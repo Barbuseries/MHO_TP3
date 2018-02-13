@@ -168,7 +168,7 @@ function h = truncation(c)
 			%
 			% See also SELECTION>TRUNCATION_.
   
-  if (c < 0)
+  if (c <= 0)
 	error('C must be > 0');
   end
 
