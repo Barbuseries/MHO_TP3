@@ -22,9 +22,9 @@
 	  - 2 methods checking solutions feasibility         (real)
 	  - tournament selection                             (both)
 	  - stop criteria                                    (both)
+	  - steady state algorithm strategy                  (both)
 
 # TODO 
 
-	  - steady state algorithm strategy                  (???) - IN PROGRESS
 	  - another variation operator                       (???)
       - improve history and plots                        (one day)

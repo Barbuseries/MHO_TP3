@@ -52,10 +52,10 @@ function result = stochasticUniversalSampling(probabilities)
   result = UTILS.select(probabilities, pointers');
 end
 
-function h = tournament(k)
+function h = tournament(k, c)
 	   %TOURNAMENT Return a function that produces TOURNAMENT_(K,
-	   % PROBABILITIES) when given PROBABILITIES.
-	   %   H = TOURNAMENT(K)
+	   % PROBABILITIES, C) when given PROBABILITIES.
+	   %   H = TOURNAMENT(K, C = N)
 	   %
 	   % 1 <= K <= N, with N = length(PROBABILITIES)
 	   %
@@ -65,13 +65,16 @@ function h = tournament(k)
 	error('K must be in [1, N]');
   end
   
-  h = @(p) tournament_(k, p);
+  if ~exist('c', 'var')
+      h = @(p) tournament_(k, p, length(p));
+  else
+      h = @(p) tournament_(k, p, c);
+  end
 end
 
-function result = tournament_(k, probabilities)
-%TOURNAMENT_ For as many times as there are elements in PROBABILITIES,
-% select K elements in PROBABILITIES at random and keep the index of
-% the maximum value.
+function result = tournament_(k, probabilities, count)
+%TOURNAMENT_ Select K elements in PROBABILITIES at random and keep the index of
+% the maximum value COUNT times.
 %
 % See also SELECTION>TOURNAMENT, SELECTION>UNBIASEDTOURNAMENT.
   
@@ -82,7 +85,7 @@ function result = tournament_(k, probabilities)
   end
 
   %% For each selection, select  which k elements we compare.
-  random_indices = randi(N, N, k);
+  random_indices = randi(N, count, k);
 
   %% For each selection, the index of the maximum value (in random_indices)
   max_indices = tournamentSelect_(random_indices, probabilities);
@@ -133,7 +136,8 @@ function result = unbiasedTournament_(k, probabilities)
 end
 
 function result = tournamentSelect_(random_indices, probabilities)
-  N = length(probabilities);
+  dim = size(random_indices);
+  N = dim(1);
   
   %% Find the indices of the maximum values row-wise.
   BY_ROW = 2;
@@ -143,10 +147,10 @@ function result = tournamentSelect_(random_indices, probabilities)
   %% i.e, 1 correponds to the first column, no matter which row we are
   %% in.
   %% And I want 1 to only refer to the first column in the first row.
-  result = relatviveToExactIndex_(rel_max_indices, N);
+  result = relativeToExactIndex_(rel_max_indices, N);
 end
 
-function result = relatviveToExactIndex_(ind, N)
+function result = relativeToExactIndex_(ind, N)
   %% ind is the relative index of the column (in 1:N).
   %% What we want is its exact location in the matrix.
   %% We know the matrix has N rows and that matrix indexing is

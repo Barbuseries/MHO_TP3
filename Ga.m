@@ -140,11 +140,11 @@ function showHistory(problem, history, iterations)
       vb_y = very_best(2);
 	  plot3(vb_x, vb_y, problem.objective_fn(vb_x, vb_y), best_individual_format, 'markersize', best_individual_size);
 
-	  ylabel('Best individual y');
+	  ylabel('y');
 	  zlabel('F(x, y)');
 	end
 	
-	xlabel('Best individual x');
+	xlabel('x');
 	title('Objective function F and best individuals at each iteration');
   else
 	disp('Too many variables to plot objective function.');
