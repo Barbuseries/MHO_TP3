@@ -1,21 +1,20 @@
 function Mutation
-					  %MUTATION All mutation functions.
-					  %
-					  % Binary mutations
-					  %  bitFlip
-					  % 
-					  % Arithmetic mutations
-					  %  uniform
-					  %  boundary
-					  %  normal(???)
-					  %  normalN(???)
-					  %  polynomial(N), N >= 0
-					  %  nonUniform(B) %% TODO: Check interval
-					  %  
-					  % See also MUTATION>BITFLIP, MUTATION>UNIFORM,
-					  % MUTATION>BOUNDARY, MUTATION>NORMAL,
-					  % MUTATION>NORMALN, MUTATION>POLYNOMIAL,
-					  % MUTATION>NONUNIFORM
+	   %MUTATION All mutation functions.
+	   %
+	   % Binary mutations
+	   %  bitFlip
+	   % 
+	   % Arithmetic mutations
+	   %  uniform
+	   %  boundary
+	   %  normal(SIGMA), length(SIGMA) is either 1 (same SIGMA for all
+	   %                 variables) or VAR_COUNT
+	   %  polynomial(N), N >= 0
+	   %  nonUniform(B) %% TODO: Check interval
+	   %
+	   % See also MUTATION>BITFLIP, MUTATION>UNIFORM,
+	   % MUTATION>BOUNDARY, MUTATION>NORMAL, MUTATION>POLYNOMIAL,
+	   % MUTATION>NONUNIFORM
   global MUTATION;
 
   %% Binary
@@ -25,7 +24,6 @@ function Mutation
   MUTATION.uniform = @uniform;
   MUTATION.boundary = @boundary;
   MUTATION.normal = @normal;
-  MUTATION.normalN = @normalN;
   MUTATION.polynomial = @polynomial;
   MUTATION.nonUniform = @nonUniform;
 end
@@ -91,39 +89,27 @@ function result = boundary(children, mutations, context)
   result = keep + clamp_up + clamp_down;
 end
 
-%% TODO: Should the the sigma be random or set by the user?
-function result = normal(children, mutations, context)
-  %% TODO: Doc...
-  
-  dim = size(children);
-  
-  N = dim(1);
-  
-  %% Use the same sigma for all variables
-  %% (sigma is 0 if there is no mutation)
-  sigma = rand(N, 1) .* (mutations == 1);
-  result = normalAny_(sigma, children, context);
+function h = normal(sigma)
+  h = @(c, m, cx) normal_(sigma, c, m, cx);
 end
 
-%% TODO: Should the the sigma be random or set by the user?
-function result = normalN(children, mutations, context)
-  %% TODO: Doc...
-  
-  dim = size(children);
-  
-  N = dim(1);
-  var_count = dim(2);
-  
-  %% Use a different sigma for all variables
-  %% (sigma is 0 if there is no mutation)
-  sigma = rand(N, var_count) .* (mutations == 1);
-  result = normalAny_(sigma, children, context);
-end
-
-function result = normalAny_(sigma, children, context)
+function result = normal_(sigma, children, mutations, context)
   constraints = context.constraints;
   clamp_fn = context.clamp_fn;
-  
+  [~, var_count] = size(children);
+
+  sigma_len = length(sigma);
+
+  if (sigma_len == 1)
+	%% Use the same sigma for all variables
+	sigma = sigma * ones(1, var_count);
+  elseif (sigma_len ~= var_count)
+	error('normal: length(SIGMA) must either be 1 or equal to VAR_COUNT');
+  end
+
+  %% Sigma is set to 0 if there is no mutation
+  sigma = sigma .* (mutations == 1);
+
   non_zero = (sigma ~= 0);
   sigma_non_zero = sigma(non_zero);
   sigma(non_zero) = sigma_non_zero .* normrnd(0, 1, size(sigma_non_zero));
