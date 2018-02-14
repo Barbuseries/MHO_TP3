@@ -25,7 +25,7 @@
 
 \subsection{Crossovers}
 
-Toutes les méthodes de crossover sont dans le fichier Crossover.m.
+Toutes les méthodes de crossover sont dans le fichier Crossover.m.\\
 Elles sont stockées dans la variable globale CROSSOVER.
 
 \subsubsection{Binaires}
@@ -70,7 +70,7 @@ TODO: Complete
 
 \subsection{Mutations}
 
-Toutes les méthodes de mutation sont dans le fichier Mutation.m.
+Toutes les méthodes de mutation sont dans le fichier Mutation.m.\\
 Elles sont stockées dans la variable globale MUTATION.
 
 \subsubsection{Binaires}
@@ -97,9 +97,9 @@ Les méthodes de mutation sur valeurs réelles suivantes ont été implémentés
 
 \subsection{Sélections}
 
-Toutes les méthodes de sélection sont dans le fichier Sélection.m.
+Toutes les méthodes de sélection sont dans le fichier Sélection.m.\\
 Elles sont stockées dans la variable globale SELECTION.
-
+\\\\
 Les méthodes de sélection suivantes ont été implémentés:
 
 \begin{itemize}
@@ -119,13 +119,45 @@ Les méthodes de sélection suivantes ont été implémentés:
   utilisés dans la sélection.\\
 \end{itemize}
 
+\subsection{Faisabilité}
+
+Les deux méthodes permettant d'assurer la faisabilité d'un solution
+ont été implémentée dans Clamp.m.\\
+Elles sont stockées dans la variable globale CLAMP.
+
+\subsection{Changement de fitness}
+
+Toutes les méthodes de changement de fitness sont dans le fichier
+\\\-FitnessChange.m.\\
+Elles sont stockées dans la variable globale FITNESS\_CHANGE.
+\\\\
+Les méthodes de changment de fitness suivantes ont été implémentés:
+\begin{itemize}
+\item échelle linéaire\\
+  
+\item troncature sigma, avec un paramètre de contrôle C dans $[1, 5]$\\
+\end{itemize}
+
+\subsection{Classement}
+Toutes les méthodes de classement sont dans le fichier Ranking.m.\\
+Elles sont stockées dans la variable globale RANKING.
+\\\\
+Les méthodes de classement suivantes ont été implémentés:
+\begin{itemize}
+\item linéaire, avec un paramètre de contrôle $\alpha$ ($\beta$ est déduit)\\
+  
+\item linéaire (2ème méthode), avec un paramètre de contrôle T dans $[0, 1]$ (pour calculer $r$; $q$ est déduit)\\
+  
+\item non-linéaire, avec un paramètre de contrôle $\alpha$ dans $]0, 1[$\\
+\end{itemize}
+
 \subsection{Stratégie "Steady State" }
 
 \subsection{Critères d'arrêt}
 
-Toutes les méthodes d'arrêt sont dans le fichier StopCriteria.m.
+Toutes les méthodes d'arrêt sont dans le fichier StopCriteria.m.\\
 Elles sont stockées dans la variable globale STOP\_CRITERIA.
-
+\\\\
 Les critères d'arrêt suivant ont été implémentés:
 \begin{itemize}
 \item time\\
