@@ -5,6 +5,7 @@ function Crossover
 	   %  singlePoint
 	   %  multiPoint(N), N in [1, L - 1]
 	   %  uniform(P, T), P in [0, 1];  or P and T as function handles
+	   %  oneBitAdaptation(F0, F1), F0 and F1 as crossover functions
 	   % 
 	   % Arithmetic crossovers
 	   %  wholeArithmetic
@@ -15,7 +16,7 @@ function Crossover
 	   % See also CROSSOVER>SINGLEPOINT, CROSSOVER>MULTIPOINT,
 	   % CROSSOVER>UNIFORM, CROSSOVER>WHOLEARITHMETIC,
 	   % CROSSOVER>LOCALARITHMETIC, CROSSOVER>BLEND,
-	   % CROSSOVER>SIMULATEDBINARY
+	   % CROSSOVER>SIMULATEDBINARY, CROSSOVER>ONEBITADAPTATION
   
   global CROSSOVER;
 
@@ -23,6 +24,7 @@ function Crossover
   CROSSOVER.singlePoint = @singlePoint;
   CROSSOVER.multiPoint = @multiPoint;
   CROSSOVER.uniform = @uniform;
+  CROSSOVER.oneBitAdaptation = @oneBitAdaptation;
 
 
   %% Arithmetic
@@ -405,4 +407,42 @@ function result = simulatedBinary_(n, a, b, ~)
   delta = 0.5 * sharp_s .* (a - b);
 
   result = [common_part + delta, common_part - delta];
+end
+
+function h = oneBitAdaptation(fn_on_0, fn_on_1)
+  %% TODO: Doc...
+  
+  h = @(a, b, l) oneBitAdaptation_(fn_on_0, fn_on_1, a, b, l);
+end
+
+function result = oneBitAdaptation_(fn_on_0, fn_on_1, a, b, l)
+  %% TODO: Doc...
+  
+  [N, var_count] = size(a);
+
+  %% TODO: Explain!
+  last_bit_a = bitand(a(:, end), 1);
+  last_bit_b = bitand(b(:, end), 1);
+
+  last_bit_diff = logical(bitxor(last_bit_a, last_bit_b));
+  last_bit_same = ~last_bit_diff;
+  
+  result = zeros(N, var_count * 2);
+  
+  evalSwitch = generateChoiceEval(fn_on_0, fn_on_1, a, b, l);
+  
+  last_bit_is_0 = last_bit_a(last_bit_same);
+  result(last_bit_same, :) = evalSwitch(last_bit_same, last_bit_is_0);
+  
+  random_bit_value = round(rand(nnz(last_bit_diff), 1));
+  result(last_bit_diff, :) = evalSwitch(last_bit_diff, random_bit_value);
+end
+
+function h = generateChoiceEval(fn_on_0, fn_on_1, a, b, l)
+    h = @(indices, choice) choiceEval_(fn_on_0, fn_on_1, indices, choice, a, b, l);
+end
+
+function result = choiceEval_(fn_on_0, fn_on_1, indices, choice, a, b, l)
+    result = fn_on_0(a(indices, :), b(indices, :), l) .* choice + ...
+             fn_on_1(a(indices, :), b(indices, :), l) .* ~choice;
 end
