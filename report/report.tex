@@ -1,0 +1,75 @@
+\documentclass[12pt, letterpaper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[frenchb]{babel}
+\usepackage{gensymb}
+\usepackage{latexsym}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage{enumitem}
+\usepackage[pdftex, hidelinks]{hyperref}
+
+\author{Edorh François, Guison Vianney}
+\title{Rapport TP1 de Métaheuristiques en optimisation}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\begin{document}
+
+\section{Méthodes implémentées}
+
+\subsection{Crossovers}
+
+\subsubsection{Binaires}
+
+Les méthodes de crossovers sur valeurs binaires suivant ont été implémentés:
+\begin{itemize}
+\item single-point crossover\\
+  
+\item multi-point crossover, avec un paramètre de contrôle N compris
+entre 1 et L - 1 (L étant la longeur du chromosome)\\
+  
+\item uniform crossover, avec deux variantes:
+  \begin{itemize}
+  \item Utiliser un paramètre P représentant une probabilité constante\\
+    
+  \item Utiliser deux paramètres de contrôle P et T, où la probabilité
+    d'une pair (a, b) est donnée par $P(T(a), T(b))$.\\
+    
+  \end{itemize}
+\end{itemize}
+
+\subsubsection{À valeurs réelles}
+Les méthodes de crossovers sur valeurs réelles suivant ont été implémentés:
+\begin{itemize}
+\item whole arithmetic crossover\\
+  
+\item local arithmetic crossover\\
+  
+\item blend crossover (ou $BLX-\alpha$), avec un paramètre de contrôle
+  $\alpha$ (valeur par défaut de 0.5)\\
+  
+\item simulated binary crossover, avec un paramètre de contrôle $N >= 0$.\\
+\end{itemize}
+
+
+\subsubsection{Au choix}
+oneBitAdaptation(F0, F1), F0 and F1 as crossover functions
+TODO: Complete
+
+\subsection{Mutations}
+\subsubsection{Binaires}
+
+\subsubsection{À valeurs réelles}
+
+\subsection{Sélections}
+
+\subsection{Stratégie "Steady State" }
+
+\subsection{Critères d'arrêt}
+
+
+\end{document}
