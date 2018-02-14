@@ -11,9 +11,9 @@ function Ranking
   global RANKING;
 
   RANKING.none = [];
-  RANKING.linear = @linear; %% ALPHA %% TODO: Check interval
-  RANKING.linear2 = @linear2; %% T in [0, 1]
-  RANKING.nonLinear = @nonLinear; %% ALPHA in ]0, 1[
+  RANKING.linear = @linear;
+  RANKING.linear2 = @linear2;
+  RANKING.nonLinear = @nonLinear;
 end
 
 function h = linear(alpha)

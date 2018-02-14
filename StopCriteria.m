@@ -5,7 +5,7 @@ function StopCriteria
 			% threshold(RELATION, T), T as limit (depends on RELATION)
 			% variance(V), V as lower limit
 			% minMaxRatio(R)
-			% meanChangeRate(R), R as lower limit
+			% meanChangeRate(CR), CR as lower limit
 			%
 			% See also STOPCRITERIA>THRESHOLD, STOPCRITERIA>ABOVE, 
 			% STOPCRITERIA>VARIANCE

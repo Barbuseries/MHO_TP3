@@ -23,7 +23,7 @@
 	  - tournament selection                              (both)
 	  - stop criteria                                     (both)
 	  - steady state algorithm strategy                   (both)
-	  - another variation operator (truncation selection) (both)
+	  - another variation operator (1-bit adaptation)     (both)
 
 # TODO 
 	  

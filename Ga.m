@@ -2,9 +2,10 @@ function Ga
   global GA;
   
   
+  GA.optimize = @optimize;
   GA.maximize = @maximize;
   GA.minimize = @minimize;
-
+  
   GA.defaultConfig = @defaultConfig;
 
   GA.showHistory = @showHistory;

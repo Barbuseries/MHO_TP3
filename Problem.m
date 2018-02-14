@@ -48,11 +48,7 @@ function result = TOTO(x)
 end
 
 function result = optimize(problem, maximize)
-  global GA;
+    global GA;
   
-  if (maximize == 1)
-	result = @(config) GA.maximize(problem.objective_fn, problem.fitness_fn, problem.constraints, config);
-  else
-	result = @(config) GA.minimize(problem.objective_fn, problem.fitness_fn, problem.constraints, config);
-  end  
+    result = @(config) GA.optimize(maximize, problem.objective_fn, problem.fitness_fn, problem.constraints, config);
 end
