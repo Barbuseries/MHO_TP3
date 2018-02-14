@@ -418,11 +418,20 @@ end
 function result = oneBitAdaptation_(fn_on_0, fn_on_1, a, b, l)
   %% TODO: Doc...
   
+  global UTILS;
+  
   [N, var_count] = size(a);
 
   %% TODO: Explain!
-  last_bit_a = bitand(a(:, end), 1);
-  last_bit_b = bitand(b(:, end), 1);
+
+  %% Bit xor all variables in a and b so the check of the last bit
+  %% depends on every variable (not just the last one).
+  %% (NOTE: bitxor is used because it is the only 2-operands bit
+  %% function that produces 1 and 0 half the time)
+  bit_xor_all = @(x) UTILS.reduce(@bitxor, x, 0);
+
+  last_bit_a = bitand(bit_xor_all(a), 1);
+  last_bit_b = bitand(bit_xor_all(b), 1);
 
   last_bit_diff = logical(bitxor(last_bit_a, last_bit_b));
   last_bit_same = ~last_bit_diff;
