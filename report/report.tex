@@ -10,14 +10,16 @@
 \usepackage{enumitem}
 \usepackage[pdftex, hidelinks]{hyperref}
 
+\frenchbsetup{StandardItemLabels=true}
+
 \author{Edorh François, Guison Vianney}
 \title{Rapport TP1 de Métaheuristiques en optimisation}
 
+
+\begin{document}
 \maketitle
 \tableofcontents
 \newpage
-
-\begin{document}
 
 \section{Méthodes implémentées}
 
@@ -33,7 +35,7 @@ Les méthodes de crossover sur valeurs binaires suivantes ont été implémenté
 \item single-point crossover\\
   
 \item multi-point crossover, avec un paramètre de contrôle N compris
-entre 1 et L - 1 (L étant la longeur du chromosome)\\
+entre 1 et $L - 1$ (L étant la longeur du chromosome)\\
   
 \item uniform crossover, avec deux variantes:
   \begin{itemize}
@@ -115,7 +117,7 @@ Les méthodes de sélection suivantes ont été implémentés:
 \item truncation selection, avec un paramètre C compris entre 1 et N,
   le nombre d'individus, où $N/C$ correspond au nombre d'individus
   utilisés dans la sélection.\\
-\end
+\end{itemize}
 
 \subsection{Stratégie "Steady State" }
 
@@ -124,5 +126,26 @@ Les méthodes de sélection suivantes ont été implémentés:
 Toutes les méthodes d'arrêt sont dans le fichier StopCriteria.m.
 Elles sont stockées dans la variable globale STOP\_CRITERIA.
 
+Les critères d'arrêt suivant ont été implémentés:
+\begin{itemize}
+\item time\\
+  
+\item threshold, avec deux paramètres de contrôle:
+  \begin{itemize}
+  \item R, la relation entre la fitness et la limite T ($>=$, $<=$,
+    ...)\\
+    
+  \item T, la limite fixée\\
+  \end{itemize}
+	
+\item variance, avec un paramètre de contrôle V\\
+	
+\item min-max ratio, avec un paramètre de contrôle R\\
+	
+\item mean-change rate, avec un paramètre de contrôle CR\\
+\end{itemize}
+
+N.B: Même si un critère d'arrêt différent du temps est défini,
+l'algorithme ne dépassera pas le nombre d'itérations maximum donnés.
 
 \end{document}
