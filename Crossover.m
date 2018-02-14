@@ -65,7 +65,7 @@ function h = multiPoint(n)
 	 % See also CROSSOVER>SINGLEPOINT, CROSSOVER>MULTIPOINT_.
   
   if (n == 1)
-	h = singlePoint;
+	h = @singlePoint;
   else
 	h = @(a, b, l) multiPoint_(n, a, b, l);
   end

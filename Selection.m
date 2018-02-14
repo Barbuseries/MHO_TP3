@@ -139,13 +139,19 @@ function result = unbiasedTournament_(k, probabilities)
 end
 
 function result = tournamentSelect_(random_indices, probabilities)
-  dim = size(random_indices);
-  N = dim(1);
+  [N, k] = size(random_indices);
+  
+  %% If we are only selecting one individual, we do not need to compare
+  %% the probabilities.
+  if (k == 1)
+      result = 1:N;
+      return;
+  end
   
   %% Find the indices of the maximum values row-wise.
   BY_ROW = 2;
   [~, rel_max_indices] = max(probabilities(random_indices), [], BY_ROW);
-
+  
   %% max returns the index relative to the row (not the whole matrix)
   %% i.e, 1 correponds to the first column, no matter which row we are
   %% in.
