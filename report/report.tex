@@ -23,9 +23,12 @@
 
 \subsection{Crossovers}
 
+Toutes les méthodes de crossover sont dans le fichier Crossover.m.
+Elles sont stockées dans la variable globale CROSSOVER.
+
 \subsubsection{Binaires}
 
-Les méthodes de crossovers sur valeurs binaires suivant ont été implémentés:
+Les méthodes de crossover sur valeurs binaires suivantes ont été implémentés:
 \begin{itemize}
 \item single-point crossover\\
   
@@ -43,7 +46,9 @@ entre 1 et L - 1 (L étant la longeur du chromosome)\\
 \end{itemize}
 
 \subsubsection{À valeurs réelles}
-Les méthodes de crossovers sur valeurs réelles suivant ont été implémentés:
+
+Les méthodes de crossover sur valeurs réelles suivantes ont été implémentés:
+
 \begin{itemize}
 \item whole arithmetic crossover\\
   
@@ -57,19 +62,67 @@ Les méthodes de crossovers sur valeurs réelles suivant ont été implémentés
 
 
 \subsubsection{Au choix}
+
 oneBitAdaptation(F0, F1), F0 and F1 as crossover functions
 TODO: Complete
 
 \subsection{Mutations}
+
+Toutes les méthodes de mutation sont dans le fichier Mutation.m.
+Elles sont stockées dans la variable globale MUTATION.
+
 \subsubsection{Binaires}
+
+La méthode de mutation binaire implémentée est la mutation bit-flip.
 
 \subsubsection{À valeurs réelles}
 
+Les méthodes de mutation sur valeurs réelles suivantes ont été implémentés:
+
+\begin{itemize}
+\item uniform mutation\\
+  
+\item boundary mutation\\
+  
+\item normal mutation, TODO: Check control parameters\\
+  
+\item normalN mutation, TODO: Check control parameters\\
+  
+\item polynomial mutation, avec un paramètre de contrôle $N >= 0$\\
+  
+\item non-uniform mutation, avec un paramètre de contrôle B.\\
+\end{itemize}
+
 \subsection{Sélections}
+
+Toutes les méthodes de sélection sont dans le fichier Sélection.m.
+Elles sont stockées dans la variable globale SELECTION.
+
+Les méthodes de sélection suivantes ont été implémentés:
+
+\begin{itemize}
+  
+\item wheel selection\\
+	
+\item stochastic universal sampling\\
+	
+\item tournament selection, avec un paramètre de contrôle K, compris
+  entre 1 et N, le nombre d'individus\\
+	
+\item unbiased tournament selection, avec un paramètre de contrôle K,
+  compris entre 1 et N, le nombre d'individus\\
+	
+\item truncation selection, avec un paramètre C compris entre 1 et N,
+  le nombre d'individus, où $N/C$ correspond au nombre d'individus
+  utilisés dans la sélection.\\
+\end
 
 \subsection{Stratégie "Steady State" }
 
 \subsection{Critères d'arrêt}
+
+Toutes les méthodes d'arrêt sont dans le fichier StopCriteria.m.
+Elles sont stockées dans la variable globale STOP\_CRITERIA.
 
 
 \end{document}
