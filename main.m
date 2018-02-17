@@ -1,3 +1,5 @@
+addpath('GeneticAlgorithm')
+
 %% Includes
 Utils;         global UTILS;
 
