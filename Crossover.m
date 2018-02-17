@@ -14,9 +14,9 @@ function Crossover
 	   %  simulatedBinary(N), N >= 0
 	   %
 	   % See also CROSSOVER>SINGLEPOINT, CROSSOVER>MULTIPOINT,
-	   % CROSSOVER>UNIFORM, CROSSOVER>WHOLEARITHMETIC,
-	   % CROSSOVER>LOCALARITHMETIC, CROSSOVER>BLEND,
-	   % CROSSOVER>SIMULATEDBINARY, CROSSOVER>ONEBITADAPTATION
+	   % CROSSOVER>ONEBITADAPTATION, CROSSOVER>UNIFORM,
+	   % CROSSOVER>WHOLEARITHMETIC, CROSSOVER>LOCALARITHMETIC,
+	   % CROSSOVER>BLEND, CROSSOVER>SIMULATEDBINARY
   
   global CROSSOVER;
 
@@ -71,7 +71,6 @@ function h = multiPoint(n)
   end
 end
 
-%% TODO?: multiPoint crossover can be implemented for real values.
 function result = multiPoint_(n, a, b, l)
    %MULTIPOINT_ Choose N random points in [1, L - 1] and split both A
    % and B into N+1 parts, then swap and merge them to create two
@@ -96,7 +95,13 @@ function result = multiPoint_(n, a, b, l)
   %% specify weither or not variables are combined (and l may be
   %% different for each).
   %% This is _not_ handled (btw).
-  %% TODO: Explain!
+  %% We need the points to be sorted. But they are also random values!
+  %% The fastest way to do that (other than using a for-loop) is to
+  %% use the indices of those values instead of the values themselves.
+  %% We first generate as many random values as the maximum point we
+  %% need, then sort the array and use the sorted indices as random
+  %% values.
+  %% @perf: We generate l - 1 points even if we only need 2...
   %% TODO(@perf): See if using randperm is faster.
   BY_COLUMN = 2;
   [~, indices] = sort(rand(N, l - 1, var_count), BY_COLUMN);
@@ -118,12 +123,8 @@ function result = multiPoint_(n, a, b, l)
   result = combineWithMask(a, b, mask, l);
 end
 
-%% TODO: Default value for p
-%% TODO: Should we reverse the function order?
 %% NOTE/FIXME: If t(a) and t(b) is negative and p is a relative sum,
-%% the result is bogus! I _may_ have a fix (offseting t(a) and t(b),
-%% but it does not work in Octave...)
-
+%% the result is bogus! Do not do that!
 function h = uniform(p, t)
    %UNIFORM Return a function that produces UNIFORM_(P, A, B, L) when
    % given A, B and L.
@@ -156,7 +157,6 @@ function h = uniform(p, t)
 	  h = @(a, b, l) uniform_(p, a, b, l);
 	end
   elseif (is_function_handle(p) && is_function_handle(t))
-	%% TODO: If t is not defined, set to identity.
 	h = @(a, b, l) uniform_(p(t(a), t(b)), a, b, l);
   else
 	error('uniform: either P must be a real in [0, 1] or P and T have to be two function handles');
@@ -341,7 +341,7 @@ function result = blend_(alpha, a, b, context)
 
   %% Lower and upper bounds of rand
   lb = min_vals - delta;
-  ub= max_vals + delta;
+  ub = max_vals + delta;
 
   lowest = constraints(:, 1)';
   biggest = constraints(:, 2)';
@@ -410,19 +410,26 @@ function result = simulatedBinary_(n, a, b, ~)
 end
 
 function h = oneBitAdaptation(fn_on_0, fn_on_1)
-  %% TODO: Doc...
+ %ONEBITADAPTATION Return a function that produces
+ % oneBitAdaptation_(FN_ON_0, FN_ON_1, A, B, L) when given A, B and L.
+ %
+ % See also CROSSOVER>ONEBITADAPTATION_.
   
   h = @(a, b, l) oneBitAdaptation_(fn_on_0, fn_on_1, a, b, l);
 end
 
 function result = oneBitAdaptation_(fn_on_0, fn_on_1, a, b, l)
-  %% TODO: Doc...
+  %ONEBITADAPTATION_ Compare the last bit of A and B. If they are the
+  % same, use the associated crossover function (FN_ON_0 if 0, FN_ON_1
+  % if 1).
+% If they are not the same, a random number in [0, 1] determines which
+% one to use.
+%
+% See also CROSSOVER>ONEBITADAPTATION.
   
   global UTILS;
   
   [N, var_count] = size(a);
-
-  %% TODO: Explain!
 
   %% Bit xor all variables in a and b so the check of the last bit
   %% depends on every variable (not just the last one).
@@ -437,10 +444,10 @@ function result = oneBitAdaptation_(fn_on_0, fn_on_1, a, b, l)
   last_bit_same = ~last_bit_diff;
   
   result = zeros(N, var_count * 2);
-  
+
   evalSwitch = generateChoiceEval(fn_on_0, fn_on_1, a, b, l);
   
-  last_bit_is_0 = last_bit_a(last_bit_same);
+  last_bit_is_0 = ~last_bit_a(last_bit_same);
   result(last_bit_same, :) = evalSwitch(last_bit_same, last_bit_is_0);
   
   random_bit_value = round(rand(nnz(last_bit_diff), 1));

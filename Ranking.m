@@ -2,7 +2,7 @@ function Ranking
 							  %RANKING All ranking functions.
 							  %
 							  % none
-							  % linear(ALPHA), %% TODO: Check interval
+							  % linear(ALPHA),
 							  % linear2(T), T in [0, 1]
 							  % nonLinear(ALPHA), ALPHA in ]0, 1[
 							  %
@@ -17,14 +17,14 @@ function Ranking
 end
 
 function h = linear(alpha)
-  %% TODO: Doc...
+								%LINEAR Linear ranking.
+								%
+								% See also RANKING>LINEAR2.
   
-  h = @(r) linearInner_(alpha, r);
+  h = @(r) linear_(alpha, r);
 end
 
-function result = linearInner_(alpha, ranks)
-  %% TODO: Doc...
-  
+function result = linear_(alpha, ranks)
   N = length(ranks);
   beta = 2 - alpha;
   
@@ -33,18 +33,19 @@ end
 
 %% t -> [0, 1] is used to compute r -> [0, 2 / (N * (N - 1))];
 function h = linear2(t)
-  %% TODO: Doc...
+		 %LINEAR Linear ranking, 2nd method.
+		 % T -> [0, 1] is used to compute R -> [0, 2 / (N * (N - 1))];
+		 %
+		 % See also RANKING>LINEAR.
   
   if (t < 0) || (t > 1)
 	error('t must be in [0, 1].');
   else
-	h = @(r) linear2Inner_(t, r);
+	h = @(r) linear2_(t, r);
   end
 end
 
-function result = linear2Inner_(t, ranks)
-  %% TODO: Doc...
-  
+function result = linear2_(t, ranks)
   N = length(ranks);
   
   r = t * (2 / (N * (N - 1)));
@@ -54,18 +55,16 @@ function result = linear2Inner_(t, ranks)
 end
 
 function h = nonLinear(alpha)
-  %% TODO: Doc...
+  %NONLINEAR Non linear ranking.
   
   if (alpha <= 0) || (alpha >= 1)
 	error('alpha must be in ]0, 1[.');
   else
-	h = @(r) nonLinearInner_(alpha, r);
+	h = @(r) nonLinear_(alpha, r);
   end
 end
 
-function result = nonLinearInner_(alpha, ranks)
-  %% TODO: Doc...
-  
+function result = nonLinear_(alpha, ranks)
   %% NOTE: It should be '^ (N - ranks)', with ranks in [1, N]: 1
   %% associated to the worst indiviual, and N to the best.
   %% Instead, as we get ranks in [0, N - 1], with 0 associated to the

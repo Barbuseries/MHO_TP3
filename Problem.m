@@ -11,6 +11,9 @@ function result = rosenbrockProblem
   result.fitness_fn = @Rosenbrock;
   result.constraints = [[0, 2]
 					    [0, 3]];
+  result.limit = 2.0025;
+  result.threshold = 2.002;
+  result.threshold_r = @gt;
 
   result.optimize = optimize(result, 1);
 end
@@ -20,6 +23,9 @@ function result = griewankProblem
   result.fitness_fn = @Griewank;
   result.constraints = [[-30, 30]
 					    [-30, 30]];
+  result.limit = 0;
+  result.threshold = 10^-4;
+  result.threshold_r = @lt;
 
   result.optimize = optimize(result, 0);
 end
@@ -28,6 +34,10 @@ function result = TOTOProblem
   result.objective_fn = @TOTO;
   result.fitness_fn = @TOTO;
   result.constraints = [[-1, 2]];
+  
+  result.limit = 3.8503;
+  result.threshold = 3.85;
+  result.threshold_r = @gt;
 
   result.optimize = optimize(result, 1);
 end

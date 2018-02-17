@@ -1,4 +1,8 @@
 function Ga
+   %GA Genetic Algorithm
+   %
+   % See also GA>OPTIMIZE, GA>MAXIMIZE, GA>MINIMIZE, GA>DEFAULTCONFIG,
+   % GA>SHOWHISTORY.
   global GA;
   
   
@@ -34,6 +38,7 @@ function [fitness, real_values_pop] = evalFitnessAndPop(population, fn, decode_f
 end
 
 function result = crossover(mating_pool, crossover_fn, Pc, context)
+  
   %% Modify mating pool to have an array of [i, j] (two individuals on
   %% the same row), so we do not have to introduce an explicit loop
   %% (usually slower) to compute the crossover of each parent pair.
@@ -68,8 +73,9 @@ function result = crossover(mating_pool, crossover_fn, Pc, context)
   result = reshape([unchanged; go_through_crossover]', var_count, [])';
 end
 
-%% TODO: Default value for iterations to be -1.
 function showHistory(problem, history, iterations)
+	%SHOWHISTORY Display figures that summarize the algorithm's steps.
+  
   global UTILS;
   
   dim = size(history.iterations(1).bestIndividual);
@@ -92,6 +98,8 @@ function showHistory(problem, history, iterations)
   very_best = history.very_best.value;
   bestFitness = history.very_best.fitness;
   
+  subplot(1, 2, 1);
+  hold on;
   plot(iterations, [values.bestFitness], '-+');
   
   plot(iterations(very_best_iteration), bestFitness, best_individual_format, 'markersize', best_individual_size);
@@ -101,8 +109,7 @@ function showHistory(problem, history, iterations)
   title('Max fitness by iteration');
 
   if (var_count <= 2)
-	figure(2);
-	clf;
+    subplot(1, 2, 2);
 	hold on;
 	
 	%% [values.bestIndividual] returns a 1D array containing
@@ -129,8 +136,6 @@ function showHistory(problem, history, iterations)
 	  x = domain(1, :);
 	  y = domain(2, :);
 
-	  %% TODO(@knowledge): See why we need to transpose xx and yy for
-	  %% z to be accurate.
 	  [xx, yy] = meshgrid(x, y);
 	  z = problem.objective_fn(xx', yy')';
 	  mesh(x, y, z);
@@ -175,6 +180,22 @@ function result = fitnessProbabilities(fitness, fitness_change_fn)
 end
 
 function [result, history] = optimize(maximizing, objective_fn, fitness_fn, constraints, config)
+%OPTIMIZE Maximize or minimize FITNESS_FN whose parameters are defined inside the given
+% CONSTRAINTS using the given CONFIG.
+% (OBJECTIVE_FN is only used to record the population's value at each
+% iteration)
+%
+% Return the best individual from the last iteration as well as an
+% history which contains, for each iteration:
+% - the population (real values) and its fitness
+% - the best individual its fitness
+% - the best overall individual (very_best): its value, fitness and the
+%   first iteration it appeared in.
+%
+% [RESULT, HISTORY] = OPTIMIZE(MAXIMIZING, OBJECTIVE_FN, FITNESS_FN, CONSTRAINTS, CONFIG)
+%
+% See also GA>MAXIMIZING, GA>MINIMIZING.
+  
   global UTILS;
   global RANKING;
   global FITNESS_CHANGE;
@@ -299,7 +320,6 @@ function [result, history] = optimize(maximizing, objective_fn, fitness_fn, cons
 	children = crossover(mating_pool, crossover_fn, Pc, context);
 
 	%% Mutation
-	%% TODO: This check can be done outside the loop.
 	%% Every allele that needs to mutate is 1 at the correponding index
 	if (l == -1)
 	  mutations = rand(children_count, var_count, 1) <= Pm;
@@ -349,22 +369,18 @@ function [result, history] = optimize(maximizing, objective_fn, fitness_fn, cons
 end
 
 function [result, history] = maximize(objective_fn, fitness_fn, constraints, config)
-  %% Maximize fitness_fn whose parameters are defined inside the given
-  %% constraints. (objective_fn is only used to record the population's
-  %% value at each iteration)
-  %%
-  %% Return the best individual from the last iteration as well as an
-  %% history which contains, for each iteration: - the population (real
-  %% values) and its fitness - the best individual its fitness - the
-  %% best overall individual (very_best): its value, fitness and the
-  %% first iteration it appeared in.
+%MAXIMIZE Same as OPTIMIZE(1, OBJECTIVE_FN, FITNESS_FN, CONSTRAINTS, CONFIG)
+%
+% See also GA>OPTIMIZE, GA>MINIMIZE;
   
   [result, history] = optimize(1, objective_fn, fitness_fn, constraints, config);
 end
 
 %% NOTE: Minimizing f(x) is maximizing g(x) = max(f(x)) -f(x)
-%% FIXME: If we use the fitness transfert, we can not set a threshold limit for the fitness.
 function [result, history] = minimize(obj_fn, fit_fn, constraints, config)
+%MINIMIZE Same as OPTIMIZE(0, OBJECTIVE_FN, FITNESS_FN, CONSTRAINTS, CONFIG)
+%
+% See also GA>OPTIMIZE, GA>MAXIMIZE;
     [result, history] = optimize(0, obj_fn, fit_fn, constraints, config);
 end
 
@@ -373,8 +389,6 @@ function result = fitnessTransfert(fitness)
 end
 
 function result = offsetFitness(fitness)
-  %% TODO: Doc...
-  
   min_fitness = min(fitness);
   
   if (min_fitness < 0)

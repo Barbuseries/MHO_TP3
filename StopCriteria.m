@@ -7,8 +7,8 @@ function StopCriteria
 			% minMaxRatio(R)
 			% meanChangeRate(CR), CR as lower limit
 			%
-			% See also STOPCRITERIA>THRESHOLD, STOPCRITERIA>ABOVE, 
-			% STOPCRITERIA>VARIANCE
+			% See also STOPCRITERIA>THRESHOLD, STOPCRITERIA>VARIANCE, 
+			% STOPCRITERIA>MINMAXRATIO, STOPCRITERIA>MEANCHANGERATE
   global STOP_CRITERIA;
   
   %% Time

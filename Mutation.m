@@ -8,9 +8,9 @@ function Mutation
 	   %  uniform
 	   %  boundary
 	   %  normal(SIGMA), length(SIGMA) is either 1 (same SIGMA for all
-	   %                 variables) or VAR_COUNT
+	   %    variables) or VAR_COUNT
 	   %  polynomial(N), N >= 0
-	   %  nonUniform(B) %% TODO: Check interval
+	   %  nonUniform(B)
 	   %
 	   % See also MUTATION>BITFLIP, MUTATION>UNIFORM,
 	   % MUTATION>BOUNDARY, MUTATION>NORMAL, MUTATION>POLYNOMIAL,
@@ -31,7 +31,7 @@ end
 %% Binary
 function result = bitFlip(children, mutations, ~)
 	 %BITFLIP For each element I in mutations where mutations(I) == 1,
-	 % invert the corresponding bit in children.
+	 % invert the corresponding bit in CHILDREN.
   
   global UTILS;
   
@@ -50,7 +50,7 @@ end
 
 %% Arithmetic
 function result = uniform(children, mutations, context)
-	 %BITFLIP For each element I in mutations where mutations(I) == 1,
+	 %UNIFORM For each element I in mutations where mutations(I) == 1,
 	 % assign a random value inside CONTEXT.CONSTRAINTS to the
 	 % corresponding variable in children.
   
@@ -90,10 +90,21 @@ function result = boundary(children, mutations, context)
 end
 
 function h = normal(sigma)
+  %NORMAL Return a function that produces
+  % NORMAL_(SIGMA, CHILDREN, MUTATIONS, CONTEXT), when given
+  % CHILDREN, MUTATIONS and CONTEXT.
+  %   H = NORMAL(SIGMA)
+  %
+  % See also MUTATION>NORMAL_.
   h = @(c, m, cx) normal_(sigma, c, m, cx);
 end
 
 function result = normal_(sigma, children, mutations, context)
+  %NORMAL_ Normal mutation. SIGMA can either be the same for all
+  %variables (in tha case, a scalar is enough), or different for each
+  %(an array with as many elements as there are variables is needed)
+  %
+  % See also MUTATION>NORMAL, NORMAN>NORMAL.
   constraints = context.constraints;
   clamp_fn = context.clamp_fn;
   [~, var_count] = size(children);
@@ -138,7 +149,9 @@ end
 
 
 function result = polynomial_(n, children, mutations, context)
-  %% TODO: Doc...
+							%POLYNOMIAL_ Polynomials and stuff. It works.
+							%
+							% See also MUTATION>POLYNOMIAL.
   
   constraints = context.constraints;
   clamp_fn = context.clamp_fn;
@@ -156,7 +169,10 @@ function result = polynomial_(n, children, mutations, context)
   u_below = (u < 0.5);
   u_above = ~u_below;
 
-  %% TODO: Explain!
+  %% Do the computation on u as a whole, but apply the condition after
+  %% (by multiplying by either 1 or 0 if the condition was true or
+  %% not).
+  %% This is _way_ faster than a for-loop.
   inv = 1 / (n + 1);
   xi = ((2 * u).^inv  - 1) .* u_below + (1 - (2 * (1 - u)).^inv) .* u_above;
 
@@ -179,7 +195,9 @@ function h = nonUniform(b)
 end
 
 function result = nonUniform_(b, children, mutations, context)
-  %% TODO: Doc...
+								%NONUNIFORM_ It is non-uniform alright.
+								%
+								% See also MUTATION>NONUNIFORM.
   
   constraints = context.constraints;
   clamp_fn = context.clamp_fn;
@@ -200,7 +218,10 @@ function result = nonUniform_(b, children, mutations, context)
   u_below = (u < 0.5);
   u_above = ~u_below;
 
-  %% TODO: Explain!
+  %% Do the computation on u as a whole, but apply the condition after
+  %% (by multiplying by either 1 or 0 if the condition was true or
+  %% not).
+  %% This is _way_ faster than a for-loop.
   inv = ((1 - g) / G_max)^b;
   delta_g = (1 - u.^inv);
   

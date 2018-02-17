@@ -195,7 +195,7 @@ function result = truncation_(c, probabilities)
  % If R = mod(N, C) ~= 0, fill the R remaining elements with the first
  % R best elements.
  %
- % See also SELECTION>TRUNCTATION.
+ % See also SELECTION>TRUNCATION.
   
   N = length(probabilities);
   

@@ -1,13 +1,13 @@
 function Replacement
-  %SELECTION All selection functions.
-	%
-	% wheel
-	% stochasticUniversalSampling
-	% tournament(K), K in [1, N]
-	% unbiasedTournament(K), K in [1, N]
-	%
-	% See also SELECTION>WHEEL, SELECTION>STOCHASTICUNIVERSALSAMPLING,
-	% SELECTION>TOURNAMENT, SELECTION>UNBIASEDTOURNAMENT
+  %Replacement All replacement functions.
+  %
+  % value
+  % old
+  % random
+  % tournament
+  %
+  % See also REPLACEMENT>VALUE, REPLACEMENT>OLD,
+  % REPLACEMENT>RANDOM, REPLACEMENT>TOURNAMENT
   
   global REPLACEMENT;
 
@@ -46,6 +46,9 @@ function result = random(fitness, ~, lambda)
 end
 
 function h = tournament(k)
+%TOURNAMENT Return a function that produces TOURNAMENT_(K, FITNESS, LAMBDA) when given FITNESS and LAMBDA.
+%
+% See also REPLACEMENT>TOURNAMENT_.
   if (k < 0)
 	error('tournament: K must be in [1, N]');
   end
@@ -54,7 +57,7 @@ function h = tournament(k)
 end
 
 function result = tournament_(k, fitness, lambda)
-  %TOURNAMENT Use SELECTION.tournament(K, LAMBDA) to select which
+  %TOURNAMENT_ Use SELECTION.tournament(K, LAMBDA) to select which
   % individuals to replace.
   %
   % See also SELECTION>TOURNAMENT.

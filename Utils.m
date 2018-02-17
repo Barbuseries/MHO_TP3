@@ -93,8 +93,7 @@ function result = evalFn(fn, val_array)
 end
 
 %% TODO: Find a better name than 'select'.
-%% NOTE: TODO below also relates to select_octave.
-%%       Just so you know:
+%% NOTE: Just so you know:
 %%         - the matlab version was found first
 %%         - it is 10% faster than the octave one (on matlab)
 %%         - the octave version is 2 times faster on octave (than the
@@ -125,7 +124,11 @@ function result = select_octave(probabilities, values)
   
   %% NOTE(@perf): This is the bottleneck (of an already optimized
   %% script).
-  %% TODO: Explain!
+  %% This is a cumulative array, as we are looking for the first i,
+  %% such as cumul(i) >= v, every i after the first one that validates
+  %% the predicate also validates it.
+  %% So there are (N + 1 - i) ones (because i starts at 1 and not 0).
+  %% And we need i.
   BY_ROW = 2;
   result = (length(probabilities) + 1) - sum(cumulative_sum >= values, BY_ROW);
 end
