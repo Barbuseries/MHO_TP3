@@ -46,11 +46,9 @@ function result = reduce(fn, a, v)
   result = v;
 end
 
-function h = decode(cities, l)
-  [N, d] = size(cities);
-  
+function h = decode(l)
   if (l == -1)
-	h = @(t) permute(reshape(cities(t, :), d, N, []), [2, 1, 3]);
+	h = @(t) t;
   else
     error('binary representation is not yet implemented (and probably never will)');
   end
@@ -139,9 +137,15 @@ function result = select_octave(probabilities, values)
   result = (length(probabilities) + 1) - sum(cumulative_sum >= values, BY_ROW);
 end
 
-function result = tourLength_(cities)
-    BY_ROW = 2;
-    
-    all_distances = sqrt(sum((cities(2:end, :, :) - cities(1:end-1, :, :)) .^2, BY_ROW));
-    result = sum(all_distances);
+function h = tourLength_(cities)
+  [N, d] = size(cities);
+  
+  h = @(t) tourLengthInner_(permute(reshape(cities(t, :), d, N, []), [2, 1, 3]));
+end
+
+function result = tourLengthInner_(cities)
+  BY_ROW = 2;
+
+  all_distances = sqrt(sum((cities(2:end, :, :) - cities(1:end-1, :, :)) .^2, BY_ROW));
+  result = sum(all_distances);
 end

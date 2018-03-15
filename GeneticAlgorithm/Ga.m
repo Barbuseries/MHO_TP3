@@ -37,7 +37,7 @@ function [fitness, real_values_pop] = evalFitnessAndPop(population, fn, decode_f
   fitness = UTILS.evalFn(fn, real_values_pop);
 end
 
-function result = crossover(mating_pool, crossover_fn, Pc, context)
+function result = crossover(mating_pool, crossover_fn, Pc)
   
   %% Modify mating pool to have an array of [i, j] (two individuals on
   %% the same row), so we do not have to introduce an explicit loop
@@ -49,24 +49,27 @@ function result = crossover(mating_pool, crossover_fn, Pc, context)
   indices = find(rand_val <= Pc); %% Find which pair will crossover
 
   go_through_crossover = mating_pool(indices, :);
-
-  %% Pair separation
-  min_b = 1:var_count; %% The first half (first individual)
-  max_b = (var_count+1):(var_count * 2); %% The second half (second individual)
-
-  %% NOTE/TODO?: Instead of separating the variables, we could
-  %% concatenated them (shift each by l*i bits and directly apply the
-  %% crossover and mutation over the resulting integer) and split them
-  %% after everything is done. This could, potentialy, speed up the
-  %% computation.
-  %% Howewer, octave has a limit of 53 bits (at least, bitset limits
-  %% the index to 53), which means we would be limited to 53 /
-  %% var_count bits per variable. (var_count = 3 => 17 bits)
-  %% (By handling them separately, we do not have _any_ limitation)
   unchanged = mating_pool;
   unchanged(indices, :) = [];  %% Remove pairs which are going to crossover.
 
-  go_through_crossover = crossover_fn(go_through_crossover(:, min_b), go_through_crossover(:, max_b), context);
+  if (~isempty(go_through_crossover))
+      %% Pair separation
+      min_b = 1:var_count; %% The first half (first individual)
+      max_b = (var_count+1):(var_count * 2); %% The second half (second individual)
+
+      %% NOTE/TODO?: Instead of separating the variables, we could
+      %% concatenated them (shift each by l*i bits and directly apply the
+      %% crossover and mutation over the resulting integer) and split them
+      %% after everything is done. This could, potentialy, speed up the
+      %% computation.
+      %% Howewer, octave has a limit of 53 bits (at least, bitset limits
+      %% the index to 53), which means we would be limited to 53 /
+      %% var_count bits per variable. (var_count = 3 => 17 bits)
+      %% (By handling them separately, we do not have _any_ limitation)
+
+
+      go_through_crossover = crossover_fn(go_through_crossover(:, min_b), go_through_crossover(:, max_b));
+  end
 
   %% Flatten the result to have [i1; i2; ...] again, instead of
   %% [ [i1, i2]; [i3, i4]; ... ]
@@ -225,7 +228,7 @@ function [result, history] = optimize(maximizing, objective_fn, fitness_fn, citi
   get_probabilities = @fitnessProbabilities;
   probabilities_fn = fitness_change_fn;
 
-  decode_fn = UTILS.decode(cities, l);
+  decode_fn = UTILS.decode(l);
 
   if (maximizing)
 	compare_fitness_fn = @max;
@@ -239,13 +242,6 @@ function [result, history] = optimize(maximizing, objective_fn, fitness_fn, citi
   var_count = dim(1);
   population = initialGeneration(N, cities, l);
   
-  %% TODO: Remove context. This will never be used.
-  if (l == -1)
-	context = struct('G_max', G_max, 'iteration', 0, 'clamp_fn', clamp_fn);
-  else
-	context = l;
-  end
-
   children_count = N;
 
   history = {};
@@ -254,10 +250,6 @@ function [result, history] = optimize(maximizing, objective_fn, fitness_fn, citi
   last_iteration = G_max + 1;
   old_fitness = [];
   for g = 1:G_max
-	if (l == -1)
-	  context.iteration = g;
-	end
-	
 	%% Evaluation
 	[fitness, real_values_pop] = evalFitnessAndPop(population, fitness_fn, decode_fn);
 
@@ -282,7 +274,7 @@ function [result, history] = optimize(maximizing, objective_fn, fitness_fn, citi
 	mating_pool = population(UTILS.shuffle(selection), :);
 
 	%% Crossover
-	children = crossover(mating_pool, crossover_fn, Pc, context);
+	children = crossover(mating_pool, crossover_fn, Pc);
 
 	%% Mutation
 	%% Every allele that needs to mutate is 1 at the correponding index
@@ -292,7 +284,8 @@ function [result, history] = optimize(maximizing, objective_fn, fitness_fn, citi
 	  mutations = rand(children_count, l, var_count) <= Pm;
 	end
 
-	population = mutation_fn(children, mutations, context);
+	%% TODO: Uncomment when at least one mutation is implemented!
+	%% population = mutation_fn(children, mutations);
 
 	%% NOTE: Currently, clamping the population inside the constraints
 	%% is done in each crossover / function that _can_ produce
@@ -359,6 +352,8 @@ function result = offsetFitness(fitness)
 end
 
 function plot_(cities, show_trail)
+    [~, dim] = size(cities);
+    
     if (~exist('show_trail', 'var'))
        show_trail = false; 
     end
@@ -370,9 +365,22 @@ function plot_(cities, show_trail)
         style = '+';
     end
     
-    plot(cities(:, 1), cities(:, 2), style);
+    if (dim == 3)
+        plot_fn = @plot3;
+    else
+        plot_fn = @plot;
+    end
+    
+    plotN_(cities, plot_fn, style);
 end
 
+
+function result = plotN_(val_array, plot_fn, varargin)
+    BY_COLUMN = 2; 
+    to_var_arg = num2cell(val_array', BY_COLUMN);
+    
+    result = plot_fn(to_var_arg{:}, varargin{:});
+end
 
 function result = defaultConfig
 	 %DEFAULTCONFIG Preconfigured genetic algorithm config.
@@ -418,7 +426,7 @@ function result = defaultConfig
 
   result.fitness_change_fn = FITNESS_CHANGE.linearScale;
   result.selection_fn = SELECTION.wheel;
-  result.crossover_fn = CROSSOVER.singlePoint;
+  result.crossover_fn = CROSSOVER.partial;
   result.mutation_fn = MUTATION.bitFlip;
   result.stop_criteria_fn = STOP_CRITERIA.time;
   result.clamp_fn = CLAMP.default;
