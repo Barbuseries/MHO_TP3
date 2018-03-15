@@ -11,6 +11,7 @@ function Ga
   GA.minimize = @minimize;
   
   GA.defaultConfig = @defaultConfig;
+  GA.plot = @plot_;
 
   GA.showHistory = @showHistory;
 end
@@ -401,6 +402,21 @@ function result = offsetFitness(fitness)
   else
 	result = fitness;
   end
+end
+
+function plot_(cities, show_trail)
+    if (~exist('show_trail', 'var'))
+       show_trail = false; 
+    end
+    
+    if (show_trail)
+        cities(end+1, :) = cities(1, :);
+        style = '+-';
+    else
+        style = '+';
+    end
+    
+    plot(cities(:, 1), cities(:, 2), style);
 end
 
 
