@@ -18,6 +18,7 @@ function Utils
   UTILS.arrayToDec = @arrayToDec;
   UTILS.randomIn = @randomIn;
   UTILS.evalFn = @evalFn;
+  UTILS.tourLength = @tourLength_;
 
   UTILS.DEBUG = struct('printFlag', @printFlag);
 end
@@ -45,12 +46,13 @@ function result = reduce(fn, a, v)
   result = v;
 end
 
-function h = decode(constraints, l)
+function h = decode(cities, l)
+  [N, d] = size(cities);
+  
   if (l == -1)
-	h = @(val) val;
+	h = @(t) permute(reshape(cities(t, :), d, N, []), [2, 1, 3]);
   else
-	max_val = 2^l -1;
-	h = @(val) dec2val(val, constraints, max_val);
+    error('binary representation is not yet implemented (and probably never will)');
   end
 end
 
@@ -87,9 +89,13 @@ function result = randomIn(interval, N)
 end
 
 function result = evalFn(fn, val_array)
-  BY_COLUMN = 2;
-  to_var_arg = num2cell(val_array', BY_COLUMN);
-  result = fn(to_var_arg{:});
+  %% TODO: Uncomment when this works in 3D.
+  %BY_COLUMN = 2;
+  %to_var_arg = num2cell(val_array', BY_COLUMN);
+  %result = fn(to_var_arg{:});
+  
+  result = fn(val_array);
+  result = reshape(result, length(result), 1, 1);
 end
 
 %% TODO: Find a better name than 'select'.
@@ -131,4 +137,11 @@ function result = select_octave(probabilities, values)
   %% And we need i.
   BY_ROW = 2;
   result = (length(probabilities) + 1) - sum(cumulative_sum >= values, BY_ROW);
+end
+
+function result = tourLength_(cities)
+    BY_ROW = 2;
+    
+    all_distances = sqrt(sum((cities(2:end, :, :) - cities(1:end-1, :, :)) .^2, BY_ROW));
+    result = sum(all_distances);
 end

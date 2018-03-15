@@ -16,18 +16,17 @@ function Ga
   GA.showHistory = @showHistory;
 end
 
-function result = initialGeneration(N, constraints, l)
-  global UTILS;
+function result = initialGeneration(N, cities, l)
+  [C, ~] = size(cities);
   
   if (l == -1)
-	result = UTILS.randomIn(constraints, N);
+	result = zeros(N, C);
+    
+    for i = 1:N
+        result(i, :) = randperm(C);
+    end
   else
-	dim = size(constraints);
-	var_count = dim(1);
-
-	max_val = 2^l-1;
-
-	result = randi(max_val, N, var_count);
+	error('binary representation is not yet implemented (and probably never will)');
   end
 end
 
@@ -180,7 +179,7 @@ function result = fitnessProbabilities(fitness, fitness_change_fn)
   result = fitness / sum(fitness);
 end
 
-function [result, history] = optimize(maximizing, objective_fn, fitness_fn, constraints, config)
+function [result, history] = optimize(maximizing, objective_fn, fitness_fn, cities, config)
 %OPTIMIZE Maximize or minimize FITNESS_FN whose parameters are defined inside the given
 % CONSTRAINTS using the given CONFIG.
 % (OBJECTIVE_FN is only used to record the population's value at each
@@ -208,8 +207,8 @@ function [result, history] = optimize(maximizing, objective_fn, fitness_fn, cons
   %% l >= 1.
   %% Same for arithmetic functions and l == -1.
   N = config.N;
-  l = config.l;
-  lambda = config.lambda;
+  %l = config.l;
+  l = -1;
   
   G_max = config.G_max;
   
@@ -217,41 +216,16 @@ function [result, history] = optimize(maximizing, objective_fn, fitness_fn, cons
   Pm = config.Pm;
 
   fitness_change_fn = config.fitness_change_fn;
-  ranking_fn = config.ranking_fn;
   selection_fn = config.selection_fn;
   crossover_fn = config.crossover_fn;
   mutation_fn = config.mutation_fn;
   stop_criteria_fn = config.stop_criteria_fn;
   clamp_fn = config.clamp_fn;
-  replacement_fn = config.replacement_fn;
 
-  use_ranking = ~isequal(ranking_fn, RANKING.none);
-  use_fitness_change = ~isequal(fitness_change_fn, FITNESS_CHANGE.none);
-  
-  if (use_ranking && use_fitness_change)
-	warning('fitness_change_fn will be ignored because ranking_fn is set.');
-  end
+  get_probabilities = @fitnessProbabilities;
+  probabilities_fn = fitness_change_fn;
 
-  if (use_ranking)
-	get_probabilities = @rankProbabilities;
-    probabilities_fn = ranking_fn;
-  else
-	get_probabilities = @fitnessProbabilities;
-    probabilities_fn = fitness_change_fn;
-  end
-
-  use_steady_state = (lambda ~= -1);
-  use_replacement_fn = ~isequal(replacement_fn, REPLACEMENT.none);
-
-  if (use_steady_state)
-	if (~use_replacement_fn)
-	  error('when using steady state, replacement_fn must not be REPLACEMENT.none');
-	end
-  elseif (use_replacement_fn)
-	warning('replacement_fn will be ignored because steady state is not used');
-  end
-
-  decode_fn = UTILS.decode(constraints, l);
+  decode_fn = UTILS.decode(cities, l);
 
   if (maximizing)
 	compare_fitness_fn = @max;
@@ -261,22 +235,18 @@ function [result, history] = optimize(maximizing, objective_fn, fitness_fn, cons
 
   tic;
 
-  dim = size(constraints);
+  dim = size(cities);
   var_count = dim(1);
-  population = initialGeneration(N, constraints, l);
-  iteration_appeared_in = ones(1, length(population));
+  population = initialGeneration(N, cities, l);
   
+  %% TODO: Remove context. This will never be used.
   if (l == -1)
-	context = struct('constraints', constraints, 'G_max', G_max, 'iteration', 0, 'clamp_fn', clamp_fn);
+	context = struct('G_max', G_max, 'iteration', 0, 'clamp_fn', clamp_fn);
   else
 	context = l;
   end
 
-  if (lambda == -1)
-	children_count = N;
-  else
-	children_count = lambda;
-  end
+  children_count = N;
 
   history = {};
   history.iterations(1:G_max+1) = struct('population', [], 'fitness', [], 'objective', [], 'bestIndividual', [], 'bestFitness', 0);
@@ -311,12 +281,6 @@ function [result, history] = optimize(maximizing, objective_fn, fitness_fn, cons
 	selection = selection_fn(probabilities);
 	mating_pool = population(UTILS.shuffle(selection), :);
 
-	if (lambda ~= -1)
-	  %% Choose two parents at random
-	  random_pair = randi(length(mating_pool), 2, 1);
-	  mating_pool = mating_pool(random_pair, :);
-	end
-
 	%% Crossover
 	children = crossover(mating_pool, crossover_fn, Pc, context);
 
@@ -328,17 +292,7 @@ function [result, history] = optimize(maximizing, objective_fn, fitness_fn, cons
 	  mutations = rand(children_count, l, var_count) <= Pm;
 	end
 
-	if (lambda == -1) %% Replace the whole population
-	  population = mutation_fn(children, mutations, context);
-	else
-	  replaced_indices = replacement_fn(fitness, iteration_appeared_in, lambda);
-	  %% TODO?: If lambda == 1, should the child kept be chosen at
-	  %% random? Or is choosing the first one enough?
-	  children = children(1:lambda, :);
-	  
-	  population(replaced_indices, :) = mutation_fn(children, mutations, context);
-	  iteration_appeared_in(replaced_indices) = g;
-	end
+	population = mutation_fn(children, mutations, context);
 
 	%% NOTE: Currently, clamping the population inside the constraints
 	%% is done in each crossover / function that _can_ produce
@@ -451,22 +405,21 @@ function result = defaultConfig
   
   result.N = 100;
   result.G_max = 100;
-  result.lambda = -1;
   
+  %% @binary
+  %% NOTE: For now, binary representation is disabled.
   %% NOTE: 'binary' is just an integer representation (to get to the
   % actual value => v = (i / maxI) * (c(1) - c(0)) + c(0), with c the
   % constaints for this variable)
-  result.l = 12;
+  %result.l = 12;
   
   result.Pc = 0.5;
   result.Pm = 0.1;
 
-  result.ranking_fn = RANKING.none;
   result.fitness_change_fn = FITNESS_CHANGE.linearScale;
   result.selection_fn = SELECTION.wheel;
   result.crossover_fn = CROSSOVER.singlePoint;
   result.mutation_fn = MUTATION.bitFlip;
   result.stop_criteria_fn = STOP_CRITERIA.time;
   result.clamp_fn = CLAMP.default;
-  result.replacement_fn = REPLACEMENT.none;
 end
