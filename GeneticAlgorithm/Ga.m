@@ -76,13 +76,9 @@ function result = crossover(mating_pool, crossover_fn, Pc)
   result = reshape([unchanged; go_through_crossover]', var_count, [])';
 end
 
-function showHistory(problem, history, iterations)
+%% TODO: See what else besides the fitness can be plotted.
+function showHistory(history, iterations)
 	%SHOWHISTORY Display figures that summarize the algorithm's steps.
-  
-  global UTILS;
-  
-  dim = size(history.iterations(1).bestIndividual);
-  var_count = dim(2);
 
   if (iterations == -1)
 	iterations = 1:length(history.iterations);
@@ -90,7 +86,7 @@ function showHistory(problem, history, iterations)
   
   values = history.iterations(iterations);
   
-  figure(1);
+  figure(2);
   clf;
   hold on;
 
@@ -98,11 +94,10 @@ function showHistory(problem, history, iterations)
   best_individual_size = 10;
 
   very_best_iteration = history.very_best.iteration;
-  very_best = history.very_best.value;
   bestFitness = history.very_best.fitness;
   
-  subplot(1, 2, 1);
-  hold on;
+  %subplot(1, 2, 1);
+  %hold on;
   plot(iterations, [values.bestFitness], '-+');
   
   plot(iterations(very_best_iteration), bestFitness, best_individual_format, 'markersize', best_individual_size);
@@ -110,54 +105,6 @@ function showHistory(problem, history, iterations)
   xlabel('Iteration');
   ylabel('Max fitness');
   title('Max fitness by iteration');
-
-  if (var_count <= 2)
-    subplot(1, 2, 2);
-	hold on;
-	
-	%% [values.bestIndividual] returns a 1D array containing
-	%% [x1, y1, ..., x2, y2, ...],so we regroup everthing to get
-	%% [[x1, y1, ...]; [x2, y2, ...]; ...]
-	best_individuals = reshape([values.bestIndividual], var_count, [])';
-	
-	objective_fn_format = 'b';
-	individuals_format = 'r+';
-	
-	best_x = best_individuals(:, 1);
-    vb_x = very_best(1);
-
-	if (var_count == 1)
-	  x = UTILS.linspacea(problem.constraints, 1000);
-	  
-	  plot(x, problem.objective_fn(x), objective_fn_format);
-	  plot(best_x, problem.objective_fn(best_x), individuals_format);
-
-	  plot(vb_x, problem.objective_fn(vb_x), best_individual_format, 'markersize', best_individual_size);
-	  ylabel('F(x)');
-	else
-	  domain = UTILS.linspacea(problem.constraints, 200); %% Less points because N^2...
-	  x = domain(1, :);
-	  y = domain(2, :);
-
-	  [xx, yy] = meshgrid(x, y);
-	  z = problem.objective_fn(xx', yy')';
-	  mesh(x, y, z);
-
-	  best_y = best_individuals(:, 2);
-	  plot3(best_x, best_y, problem.objective_fn(best_x, best_y), individuals_format);
-
-      vb_y = very_best(2);
-	  plot3(vb_x, vb_y, problem.objective_fn(vb_x, vb_y), best_individual_format, 'markersize', best_individual_size);
-
-	  ylabel('y');
-	  zlabel('F(x, y)');
-	end
-	
-	xlabel('x');
-	title('Objective function F and best individuals at each iteration');
-  else
-	disp('Too many variables to plot objective function.');
-  end
 end
 
 function result = createRecord(population, fitness, objective_fn, compare_fitness_fn)

@@ -140,8 +140,9 @@ end
 
 function h = tourLength_(cities)
   [N, d] = size(cities);
-  
-  h = @(t) tourLengthInner_(permute(reshape(cities(t, :), d, N, []), [2, 1, 3]));
+
+  %% TODO: Improve this (remove unneeded transpositions)
+  h = @(t) tourLengthInner_(permute(reshape(cities(t', :)', d, N, []), [2, 1, 3]));
 end
 
 function result = tourLengthInner_(cities)

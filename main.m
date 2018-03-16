@@ -24,8 +24,9 @@ if (PROFILING)
 end
 
 %% Configuration
-cities = PROBLEM.generate(9, [[0, 10]
+cities = PROBLEM.generate(20, [[0, 10]
                               [0, 10]]);
+figure(1);
 GA.plot(cities, false);
 drawnow;
 
@@ -44,7 +45,8 @@ config.mutation_fn = MUTATION.simpleInverse;
 
 length_fn = UTILS.tourLength(cities);
 
-[r, h] = GA.optimize(0, length_fn, length_fn, cities, config);
+[r, h] = GA.minimize(length_fn, length_fn, cities, config);
+UTILS.evalFn(length_fn, h.very_best.value)
 GA.plot(cities(h.very_best.value, :), true);
 
 %% disp('Best individual at last iteration, and its fitness:')
@@ -55,7 +57,7 @@ GA.plot(cities(h.very_best.value, :), true);
 %% disp(h.very_best.value);
 %% disp(UTILS.evalFn(p.objective_fn, r));
 
-%% GA.showHistory(p, h, -1);
+GA.showHistory(h, -1);
 
 if (PROFILING)
   if (UTILS.isMatlab)
