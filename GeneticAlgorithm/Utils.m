@@ -19,9 +19,11 @@ function Utils
   UTILS.randomIn = @randomIn;
   UTILS.evalFn = @evalFn;
   UTILS.tourLength = @tourLength_;
+  UTILS.randUnique = @randUnique_;
   UTILS.randUniqueS = @randUniqueS_;
-
-  UTILS.DEBUG = struct('printFlag', @printFlag);
+  
+  UTILS.DEBUG = struct('printFlag', @printFlag, ...
+					   'assertIntegrity', @assertIntegrity_);
 end
 
 function result = shuffle(a)
@@ -154,12 +156,25 @@ function result = tourLengthInner_(cities)
   result = sum(all_distances);
 end
 
-function result = randUniqueS_(N, M, k)
+function result = randUnique_(M, N, k)
 % RANDUNIQUE_(N, M, K) Return an N by K matrix containing
-% K sorted unique values in 1:M per row.
+% K unique values in 1:M per row.
   
   BY_ROW = 2;
   
   [~, indices] = sort(rand(N, M), BY_ROW);
-  result = sort(indices(:, 1:k), BY_ROW);
+  result = indices(:, 1:k);
+end
+
+function result = randUniqueS_(M, N, k)
+% RANDUNIQUES_(N, M, K) Return an N by K matrix containing
+% K sorted unique values in 1:M per row.
+  
+  BY_ROW = 2;
+  result = sort(randUnique_(N, M, k), BY_ROW);
+end
+
+function assertIntegrity_(tours, city_count)
+  BY_ROW = 2;
+  assert(all(all(ismember(tours, 1:city_count), BY_ROW)));
 end

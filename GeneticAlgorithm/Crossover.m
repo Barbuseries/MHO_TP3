@@ -4,14 +4,16 @@ function Crossover
   global CROSSOVER;
 
   CROSSOVER.partial = @partial_;
+  CROSSOVER.position = @position_;
 end
 
+%% Partial
 function result = partial_(a, b)
   global UTILS;
   
   [N, len] = size(a);
 
-  random_points = UTILS.randUniqueS(N, len, 2);
+  random_points = UTILS.randUniqueS(len, N, 2);
 
   result = zeros(N, 2 * len);
   all_indices = 1:len;
@@ -58,13 +60,6 @@ function result = partialMakeChildren_(a, b, all_indices, p1, p2)
   child_one(out_indices) = mapped(child_one(out_indices));
   child_two(out_indices) = mapped(child_two(out_indices));
   
-  
-  %% TODO: Remove this! (or only enable it when debugging)
-  %% NOTE: This is not fired anymore since we are using the loop above. It should be fine...
-  n = all_indices(end);
-  total_count = n * (n + 1);
-  assert((sum(child_one, 2) + sum(child_two, 2)) == total_count);
-  
   result = [child_one, child_two];
 end
 
@@ -74,4 +69,43 @@ function [i, j] = fastIntersect_(a, b)
     
     i = sort(a_idx(ismembc(a, b)));
     j = sort(b_idx(ismembc(b, a)));
+end
+
+
+%% Position
+function result = position_(a, b)
+  global UTILS;
+
+  [N, len] = size(a);
+
+  random_index_count = randi(len, N, 1);
+  child_one = a;
+  child_two = b;
+
+  for i = 1:N
+	random_indices = UTILS.randUnique(len, 1, random_index_count(i));
+    
+    remaining_indices = 1:len;
+	remaining_indices(random_indices) = [];
+
+	a_values = a(i, :);
+	b_values = b(i, :);
+    
+    %% TODO(@perf): See if setdiff is faster.
+    %% Yes, it works (because a and b both have the same elements).
+    [~, a_sorted_indices] = sort(a_values);
+	[~, b_sorted_indices] = sort(b_values);
+    b_in_a_indices = a_sorted_indices(b_values(random_indices));
+    a_in_b_indices = b_sorted_indices(a_values(random_indices));
+    
+    a_remaining_values = a_values;
+    b_remaining_values = b_values;
+    a_remaining_values(b_in_a_indices) = [];
+	b_remaining_values(a_in_b_indices) = [];
+
+	child_one(i, remaining_indices) = b_remaining_values;
+	child_two(i, remaining_indices) = a_remaining_values;
+  end
+
+  result = [child_one, child_two];
 end

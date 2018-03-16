@@ -223,6 +223,9 @@ function [result, history] = optimize(maximizing, objective_fn, fitness_fn, citi
 	%% Crossover
 	children = crossover(mating_pool, crossover_fn, Pc);
 
+	%% TODO(@debug) Remove this!
+	UTILS.DEBUG.assertIntegrity(children, var_count);
+
 	%% Mutation
 	%% Every allele that needs to mutate is 1 at the correponding index
 	if (l == -1)
@@ -232,6 +235,9 @@ function [result, history] = optimize(maximizing, objective_fn, fitness_fn, citi
 	end
 
 	population = mutation_fn(children, mutations);
+
+	%% TODO(@debug) Remove this!
+	UTILS.DEBUG.assertIntegrity(population, var_count);
 
 	%% NOTE: Currently, clamping the population inside the constraints
 	%% is done in each crossover / function that _can_ produce
