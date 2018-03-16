@@ -3,10 +3,10 @@ function Mutation
   
   global MUTATION;
 
-  MUTATION.inverse = @inverse_;
+  MUTATION.simpleInverse = @simpleInverse_;
 end
 
-function result = inverse_(children, mutations)
+function result = simpleInverse_(children, mutations)
   global UTILS;
 
   [~, len] = size(children);

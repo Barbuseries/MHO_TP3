@@ -38,7 +38,7 @@ config.Pm = 0.01;
 %%config.fitness_change_fn = FITNESS_CHANGE.none;
 config.selection_fn = SELECTION.unbiasedTournament(2);
 config.crossover_fn = CROSSOVER.partial;
-config.mutation_fn = MUTATION.inverse;
+config.mutation_fn = MUTATION.simpleInverse;
 %% config.stop_criteria_fn = STOP_CRITERIA.threshold(p.threshold_r, p.threshold);
 %% config.clamp_fn = CLAMP.default;
 

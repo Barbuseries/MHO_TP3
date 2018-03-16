@@ -426,7 +426,7 @@ function result = defaultConfig
   result.fitness_change_fn = FITNESS_CHANGE.linearScale;
   result.selection_fn = SELECTION.wheel;
   result.crossover_fn = CROSSOVER.partial;
-  result.mutation_fn = MUTATION.inverse;
+  result.mutation_fn = MUTATION.simpleInverse;
   result.stop_criteria_fn = STOP_CRITERIA.time;
   result.clamp_fn = CLAMP.default;
 end
