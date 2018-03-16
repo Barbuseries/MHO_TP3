@@ -279,13 +279,12 @@ function [result, history] = optimize(maximizing, objective_fn, fitness_fn, citi
 	%% Mutation
 	%% Every allele that needs to mutate is 1 at the correponding index
 	if (l == -1)
-	  mutations = rand(children_count, var_count, 1) <= Pm;
+	  mutations = rand(children_count, 1, 1) <= Pm;
 	else
 	  mutations = rand(children_count, l, var_count) <= Pm;
 	end
 
-	%% TODO: Uncomment when at least one mutation is implemented!
-	%% population = mutation_fn(children, mutations);
+	population = mutation_fn(children, mutations);
 
 	%% NOTE: Currently, clamping the population inside the constraints
 	%% is done in each crossover / function that _can_ produce
@@ -427,7 +426,7 @@ function result = defaultConfig
   result.fitness_change_fn = FITNESS_CHANGE.linearScale;
   result.selection_fn = SELECTION.wheel;
   result.crossover_fn = CROSSOVER.partial;
-  result.mutation_fn = MUTATION.bitFlip;
+  result.mutation_fn = MUTATION.inverse;
   result.stop_criteria_fn = STOP_CRITERIA.time;
   result.clamp_fn = CLAMP.default;
 end

@@ -24,27 +24,28 @@ if (PROFILING)
 end
 
 %% Configuration
-cities = PROBLEM.generate(10, [[0, 10]
-                               [0, 10]]);
+cities = PROBLEM.generate(9, [[0, 10]
+                              [0, 10]]);
 GA.plot(cities, false);
 drawnow;
 
 config = GA.defaultConfig();
-config.N = 200;
-config.G_max = 500;
-%% config.l = -1; %% If to to -1, real encoding. Possible values: -1 or in [1, 53] 
+config.N = 100;
+config.G_max = 250;
+config.Pc = 0.8;
+config.Pm = 0.01;
+%% config.l = -1; %% If set to -1, real encoding. Possible values: -1 or in [1, 53] 
 %%config.fitness_change_fn = FITNESS_CHANGE.none;
-config.selection_fn = SELECTION.unbiasedTournament(5);
+config.selection_fn = SELECTION.unbiasedTournament(2);
 config.crossover_fn = CROSSOVER.partial;
-config.Pc = 0.9;
-config.mutation_fn = MUTATION.uniform;
+config.mutation_fn = MUTATION.inverse;
 %% config.stop_criteria_fn = STOP_CRITERIA.threshold(p.threshold_r, p.threshold);
 %% config.clamp_fn = CLAMP.default;
 
 length_fn = UTILS.tourLength(cities);
 
-[r, h] = GA.optimize(1, length_fn, length_fn, cities, config);
-GA.plot(cities(r, :), true);
+[r, h] = GA.optimize(0, length_fn, length_fn, cities, config);
+GA.plot(cities(h.very_best.value, :), true);
 
 %% disp('Best individual at last iteration, and its fitness:')
 %% disp(r);
