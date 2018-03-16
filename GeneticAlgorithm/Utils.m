@@ -19,6 +19,7 @@ function Utils
   UTILS.randomIn = @randomIn;
   UTILS.evalFn = @evalFn;
   UTILS.tourLength = @tourLength_;
+  UTILS.randUniqueS = @randUniqueS_;
 
   UTILS.DEBUG = struct('printFlag', @printFlag);
 end
@@ -146,6 +147,18 @@ end
 function result = tourLengthInner_(cities)
   BY_ROW = 2;
 
-  all_distances = sqrt(sum((cities(2:end, :, :) - cities(1:end-1, :, :)) .^2, BY_ROW));
+  %% Also compute the distance between the last city and the first one.
+  complete_tour = [cities; cities(1, :, :)];
+  all_distances = sqrt(sum((complete_tour(2:end, :, :) - complete_tour(1:end-1, :, :)) .^2, BY_ROW));
   result = sum(all_distances);
+end
+
+function result = randUniqueS_(N, M, k)
+% RANDUNIQUE_(N, M, K) Return an N by K matrix containing
+% K sorted unique values in 1:M per row.
+  
+  BY_ROW = 2;
+  
+  [~, indices] = sort(rand(N, M), BY_ROW);
+  result = sort(indices(:, 1:k), BY_ROW);
 end
