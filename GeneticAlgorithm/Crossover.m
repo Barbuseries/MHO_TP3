@@ -5,6 +5,7 @@ function Crossover
 
   CROSSOVER.partial = @partial_;
   CROSSOVER.position = @position_;
+  CROSSOVER.cycle = @cycle_;
 end
 
 %% Partial
@@ -108,4 +109,42 @@ function result = position_(a, b)
   end
 
   result = [child_one, child_two];
+end
+
+%% Cycle
+function result = cycle_(a, b)
+  [N, len] = size(a);
+  
+  child_one = zeros(N, len);
+  child_two = zeros(N, len);
+
+  for i = 1:N
+	parent_a = a(i, :);
+	parent_b = b(i, :);
+
+	child_one(i, :) = cycleInner_(parent_a, parent_b, len);
+	child_two(i, :) = cycleInner_(parent_b, parent_a, len);
+  end
+  
+  result = [child_one, child_two];
+end
+
+function result = cycleInner_(parent_a, parent_b, len)
+  result = zeros(1, len);
+
+  start_index = 1;
+  index = start_index;
+  while(index >= 1)
+	value = parent_a(index);
+    next_index = parent_b(value);
+    
+    result(index) = value;
+    
+	if (next_index ~= start_index)
+	  index = next_index;
+	else
+	  start_index = find((result == 0), 1); %% Find first empty slot;
+	  index = start_index;
+	end
+  end
 end
