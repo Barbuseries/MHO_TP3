@@ -4,6 +4,7 @@ function Mutation
   global MUTATION;
 
   MUTATION.simpleInverse = @simpleInverse_;
+  MUTATION.swap = @swap_;
 end
 
 function result = simpleInverse_(children, mutations)
@@ -49,4 +50,20 @@ function result = simpleInverse_(children, mutations)
 	result(index, first_part) = inv_pattern(1:first_part_count);
 	result(index, second_part) = inv_pattern((first_part_count+1):end);
   end
+end
+
+function result = swap_(children, mutations)
+  global UTILS;
+
+  [N, len] = size(children);
+  
+  row_indices = find(mutations);
+  
+  columns_to_swap = UTILS.randUnique(len, length(row_indices), 2);
+
+  indices = row_indices + (columns_to_swap - 1) * N;
+  indices_rev = indices(:, end:-1:1);
+  
+  result = children;
+  result(indices) = result(indices_rev);
 end
