@@ -4,12 +4,18 @@ function Mutation
   global MUTATION;
 
   MUTATION.simpleInverse = @simpleInverse_;
+  MUTATION.displace = @displace_;
+  MUTATION.inverse = @inverse_;
+  MUTATION.inserte = @inserte_;
+  
   MUTATION.swap = @swap_;
+  MUTATION.pop = @pop_;
+  MUTATION.insert = @insert_;
 end
 
 function result = simpleInverse_(children, mutations)
   [~, len] = size(children);
-
+    
   mutation_indices = find(mutations == 1);
   mutation_count = length(mutation_indices);
 
@@ -52,6 +58,90 @@ function result = simpleInverse_(children, mutations)
   end
 end
 
+function result = displace_(children, mutations)
+  [~, len] = size(children);
+  
+  mutation_indices = find(mutations == 1);
+  mutation_count = length(mutation_indices);
+  
+  result =children;
+  
+  for i = 1:mutation_count
+    index = mutation_indices(i);
+    
+    seg_lenght =  randi(len-1, 1);
+    seg_start =  randi(len-seg_lenght, 1);
+    seg_end = seg_start+seg_lenght;
+    
+    currentChildren = children(index,:);
+    seg =currentChildren(seg_start:seg_end-1);
+    
+    p1 = currentChildren(1:seg_start-1);
+    p2 = currentChildren(seg_end:end);
+    
+    children_without_seg = [p1 p2];
+    
+    seg_insertion_pos = randi(length(children_without_seg), 1);
+    pa = children_without_seg(1:seg_insertion_pos);
+    pb = children_without_seg(seg_insertion_pos+1:end);
+    
+    result(index, :) = [pa seg pb];
+  end
+end
+
+function result = inverse_(children, mutations)
+  [~, len] = size(children);
+
+  mutation_indices = find(mutations == 1);
+  mutation_count = length(mutation_indices);
+  
+  result =children;
+  
+  for i = 1:mutation_count
+    index = mutation_indices(i);
+    
+    seg_lenght =  randi(len-1, 1);
+    seg_start =  randi(len-seg_lenght, 1);
+    seg_end = seg_start+seg_lenght;
+    
+    currentChildren = children(index,:);
+    seg =currentChildren(seg_start:seg_end-1);
+    %the only change with displacement_mutation
+    seg =fliplr(seg);
+    
+    p1 = currentChildren(1:seg_start-1);
+    p2 = currentChildren(seg_end:end);
+    children_without_seg = [p1 p2];
+    
+    seg_insertion_pos = randi(length(children_without_seg), 1);
+    pa = children_without_seg(1:seg_insertion_pos);
+    pb = children_without_seg(seg_insertion_pos+1:end);
+    
+    result(index, :) = [pa seg pb];
+  end
+end
+
+function result = inserte_(children, mutations)
+  [~, len] = size(children);
+  
+  mutation_indices = find(mutations == 1);
+  mutation_count = length(mutation_indices);
+  
+  result =children;
+  
+  for i = 1:mutation_count
+    index = mutation_indices(i);
+    
+    element_pos = randi(len, 1);
+    element = children(index,element_pos);
+    
+    popChildren = pop_(children(index,:), element_pos);
+    new_element_pos = randi(len-1, 1);
+    
+    result(index, :) =insert_(popChildren, new_element_pos, element);
+  end
+end
+
 function result = swap_(children, mutations)
   global UTILS;
 
@@ -66,4 +156,16 @@ function result = swap_(children, mutations)
   
   result = children;
   result(indices) = result(indices_rev);
+end
+
+function result = pop_(array, pos)
+    pa = array(1:pos-1);
+    pb = array(pos+1:end);
+    result = [pa pb];
+end
+
+function result = insert_(array, pos, element)
+    pa = array(1:pos);
+    pb = array(pos+1:end);
+    result = [pa element pb];
 end
